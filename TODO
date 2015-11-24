@@ -1,2 +1,12 @@
-set up dependencies
-pass t
+switch to xref stream
+
+fix 1BL
+
+compress
+use buffer instead of strings
+capture acroforms
+fill out text
+fill out acroforms data
+dist my pdf.worker.js on GitHub
+
+detect if file uses classic xref, if so switch to that
