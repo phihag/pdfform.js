@@ -1,9 +1,12 @@
-xref stream not correct enough for parse.js
-fill out acroforms
+git ci
 
-capture acroforms
-fill out text
-fill out acroforms data
+render XFA and AF together
+
+
 dist my pdf.worker.js on GitHub
-
 detect if file uses classic xref, if so switch to that
+remove constant copying at every corner, step by step
+clean up duplicate libraries (adler + inflate, should be in pdf.js)
+dependency in bup
+download file & serve in bup
+correct data in bup

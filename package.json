@@ -10,6 +10,8 @@
 		"test": "mocha test/"
 	},
 	"dependencies": {
+		"xmldom": "*",
+		"text-encoding": "*"
 	},
 	"devDependencies": {
 		"mocha": "*",

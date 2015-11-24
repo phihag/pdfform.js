@@ -14,7 +14,10 @@ install-libs:
 
 force-install-libs:
 	mkdir -p libs
-	wget https://raw.githubusercontent.com/mozilla/pdfjs-dist/master/build/pdf.combined.js -O libs/pdf.combined.js
+	#wget https://raw.githubusercontent.com/mozilla/pdfjs-dist/master/build/pdf.combined.js -O libs/pdf.combined.js
+	wget https://raw.githubusercontent.com/chick307/adler32cs.js/master/adler32cs.js -O libs/adler32cs.js
+	#wget https://raw.githubusercontent.com/MrRio/jsPDF/master/libs/deflate.js -O libs/deflate.js
+
 	touch libs/.completed
 
 deps: install-libs
