@@ -1,9 +1,6 @@
-switch to xref stream
+xref stream not correct enough for parse.js
+fill out acroforms
 
-fix 1BL
-
-compress
-use buffer instead of strings
 capture acroforms
 fill out text
 fill out acroforms data

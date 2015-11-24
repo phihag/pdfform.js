@@ -281,6 +281,7 @@ write_xref_stream: function(out, prev, root_ref) {
 	var dict = {
 		Type: new pdf_js.Name('XRef'),
 		Size: this.entries.length + 1, // + 1 for this object itself
+		Length: 6 * (this.entries.length + 1),
 		Root: root_ref,
 		W: [1, 4, 1],
 	};
@@ -293,7 +294,7 @@ write_xref_stream: function(out, prev, root_ref) {
 	var entry = this.add('__xref_stream__', 0);
 	entry.offset = out.position();
 	this.entries.forEach(function(e, i) {
-		assert(e.offset !== undefined, 'entry should have a offset object set');
+		assert(e.offset !== undefined, 'entry should have an offset');
 		bio.write_buf(new Buffer([
 			(e.uncompressed ? 1 : 2),
 			(e.offset >> 24),
