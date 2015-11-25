@@ -297,30 +297,6 @@ write_object: function(out, e, uncompressed) {
 	out.write_str(bs);
 	out.write_str('\nendobj\n');
 },
-gen_xref: function() {
-	var bio = new BytesIO();
-		bio.write_str('xref\n');
-	bio.write_str('0 1\n');
-	bio.write_str('0000000000 65535 f\r\n');
-
-	this.entries.forEach(function(e) {
-		assert(e.offset, e + 'should have an offset set');
-		bio.write_str(e.id + ' 1\n');
-		bio.write_str(pad(e.offset, 10) + ' ' + pad(e.gen, 5) + ' n\r\n');
-	});
-
-	// write trailer
-	/*var trailer_prev = ;
-	var root_id = get_root_id(doc);
-	out.write_str('trailer\n');
-	out.write_str('<<\n');
-	out.write_str('/Size ' + objects.next_refnum + '\n');
-	out.write_str('/Root ' + root_id + ' 0 R' + '\n');
-	out.write_str('/Prev ' + trailer_prev + '\n');
-	out.write_str('>>\n');*/
-
-	return bio.get_buffer();
-},
 write_xref_stream: function(out, prev, root_ref) {
 	var dict = {
 		Type: new pdf_js.Name('XRef'),
@@ -422,7 +398,6 @@ function modify_xfa(doc, objects, out, index, callback) {
 	str = callback(str);
  
 	var out_bs = (new TextEncoder('utf-8').encode(str));
-	fs.writeFileSync(index, str);
 	xfa_node.bytes = out_bs;
 	xfa_node.length = out_bs.length;
 	
@@ -442,7 +417,7 @@ function transform(data, fields) {
 	var objects = new PDFObjects(doc.xref.entries);
 
 	// Change AcroForms
-/*	visit_acroform_fields(doc, function(n) {
+	visit_acroform_fields(doc, function(n) {
 		var spec = acroform_match_spec(n, fields);
 		if (spec === undefined) {
 			return;
@@ -460,7 +435,7 @@ function transform(data, fields) {
 		var e = objects.update(ref.num, n, ref.gen);
 		objects.write_object(out, e);
 	});
-*/
+
 	// Change XFA
 	modify_xfa(doc, objects, out, 'template', function(str) {
 		// Manually check checkboxes (this is for bup only)

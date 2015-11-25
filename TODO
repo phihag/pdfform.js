@@ -1,10 +1,7 @@
-git ci
-
 render XFA and AF together
 
 
 dist my pdf.worker.js on GitHub
-detect if file uses classic xref, if so switch to that
 remove constant copying at every corner, step by step
 clean up duplicate libraries (adler + inflate, should be in pdf.js)
 dependency in bup
