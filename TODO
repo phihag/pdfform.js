@@ -1,9 +1,17 @@
-render XFA and AF together
+fix rfa
 
+switch to minipdf
+profiler for minipdf (cache object stream results!)
 
+remove Buffer instances and use Uint8array
+test in browser (make sure to remove main)
 dist my pdf.worker.js on GitHub
-remove constant copying at every corner, step by step
-clean up duplicate libraries (adler + inflate, should be in pdf.js)
+
+render XFA and AF together (stackoverflow, adobe?)
+	include AP
+
 dependency in bup
 download file & serve in bup
 correct data in bup
+replace pdf.worker.js with minipdf.js
+	cache fetched objects from object stream

@@ -1,0 +1,34 @@
+{
+    "rules": {
+        "indent": 0,
+        "quotes": [
+            2,
+            "single"
+        ],
+        "linebreak-style": [
+            2,
+            "unix"
+        ],
+        "semi": [
+            2,
+            "always"
+        ],
+        "comma-dangle": [
+            2,
+            "always-multiline"
+        ],
+    },
+    "env": {
+        "node": true,
+        "browser": true
+    },
+    "globals": {
+        " (library names) ": 1,
+        "PDFJS": 1,
+
+        " (mocha) ": 1,
+        "describe": 1,
+        "it": 1,
+    },
+    "extends": "eslint:recommended"
+}

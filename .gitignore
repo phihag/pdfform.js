@@ -1,3 +1,4 @@
-node_modules
+dist
 libs
+node_modules
 *.pdf

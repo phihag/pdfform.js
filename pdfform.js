@@ -16,12 +16,48 @@ global.navigator = {
 };
 PDFJS.disableStream = true;
 PDFJS.disableRange = true;
+var pdf_js = require('./customlibs/pdf.worker.js');
+assert(!pdf_js.parse);
+pdf_js.parse = function(buf) {
+	var doc = new pdf_js.PDFDocument(null, buf);
+	doc.checkHeader();
+	doc.parseStartXRef();
+	doc.parse();
+	doc.get_root_id = function() {
+		var obj_id = this.catalog.catDict.objId;
+		var m = /^([0-9]+)R$/.exec(obj_id);
+		assert(m);
+		return parseInt(m[1], 10);
+	};
+	return doc;
+};
+pdf_js.newDict = function(map) {
+	var dict = new pdf_js.Dict();
+	dict.map = map;
+	return dict;
+};
+pdf_js.newStream = function(map, buf) {
+	var dict = pdf_js.newDict(map);
+	return new pdf_js.Stream(buf, 0, buf.length, dict);
+};
 
 
 
-var adler32cs = require('./libs/adler32cs.js');
-var Deflater = require('./libs/deflate.js').Deflater;
-var pdf_js = require('./libs/pdf.worker.js');
+var pako = require('./libs/pako.min.js');
+var minipdf = require('./minipdf.js');
+
+
+function adler32_buf(buf) {
+	var a = 1;
+	var b = 0;
+	var MOD = 65521;
+
+	for (var i = 0;i < buf.length;i++) {
+		a = (a + buf[i]) % MOD;
+		b = (b + a) % MOD;
+    }
+    return ((b << 16) | a) >>> 0; // >>> 0 forces the result to be interpreted as unsigned int
+}
 
 function BytesIO() {
 	this.length = 0;
@@ -43,9 +79,6 @@ BytesIO.prototype = {
 		return new Uint8Array(this.get_buffer());
 	},
 	position: function() {
-		// TODO remove this debugging code
-		var real_len = Buffer.concat(this.buffers).length;
-		assert(this.length == real_len);
 		return this.length;
 	},
 };
@@ -68,15 +101,6 @@ function buf2str(buf) {
 	return res;
 }
 
-function str2uint8ar(s) {
-	var res = new Uint8Array(s.length);
-	for (var i = 0; i < s.length; i++) {
-		res[i] = s.charCodeAt(i);
-	}
-	return res;
-}
-
-
 
 
 // Code from pdf.utils.js (ASL2) starts here
@@ -92,14 +116,14 @@ function pad(num, length) {
 function hasSpecialChar(str) {
   for (var i = 0, ii = str.length; i < ii; i++) {
 	switch (str[i]) {
-	  case '(':
-	  case ')':
-	  case '\\':
-	  case '\n':
-	  case '\r':
-	  case '\t':
-	  case '\b':
-	  case '\f':
+	case '(':
+	case ')':
+	case '\\':
+	case '\n':
+	case '\r':
+	case '\t':
+	case '\b':
+	case '\f':
 		return true;
 	}
   }
@@ -107,166 +131,73 @@ function hasSpecialChar(str) {
 }
 
 
-function RefManager(xref) {
-	// Hack so we don't have any refs collide.
-	this.id = xref.entries.length;
-	this.map = {};
-	this.offsets = {};
-	this.offsetCount = 0;
-	this.xref = xref;
-}
-RefManager.prototype = {
-	create: function (obj) {
-	  var ref = new pdf_js.Ref(this.id++, 0);
-	  var str = ('R' + ref.num + '.' + ref.gen);
-	  var wrapper = {
-		ref: ref,
-		obj: obj
-	  };
-	  this.map[str] = wrapper;
-	  return wrapper;
-	},
-	get: function (ref) {
-	  var str = ('R' + ref.num + '.' + ref.gen);
-	  var obj;
-	  if (str in this.map) {
-		obj = this.map[str].obj;
-	  } else {
-		obj = this.xref.fetch(ref);
-	  }
-	  return obj;
-	},
-	setOffset: function (ref, offset) {
-	  this.offsets[ref.num] = offset;
-	  this.offsetCount++;
-	}
-}
-
-
-
-  function DictModel() {
-	this.map = {};
-  }
-
-  function serialize(node, refsToVisit, visitedRefs, uncompressed) {
+function serialize(node, uncompressed) {
+	var i, ret;  // Wishing for let in modern browsers :(
 	if (pdf_js.isRef(node)) {
-	  if (!visitedRefs.has(node)) {
-		visitedRefs.put(node);
-		refsToVisit.unshift(node);
-	  }
-	  return node.num + ' ' + node.gen + ' R';
+		return node.num + ' ' + node.gen + ' R';
 	} else if (pdf_js.isNum(node)) {
-	  return node;
+		return node;
 	} else if (pdf_js.isBool(node)) {
-	  return node;
+		return node;
 	} else if (pdf_js.isName(node)) {
-	  return '/' + node.name;
+		return '/' + node.name;
 	} else if (pdf_js.isString(node)) {
-	  if (!hasSpecialChar(node)) {
+		if (!hasSpecialChar(node)) {
 		return '(' + node + ')';
-	  } else {
-		var ret = '<';
-		for (var i = 0; i < node.length; i++) {
-		  ret += pad(node.charCodeAt(i).toString(16), 2);
+		} else {
+		ret = '<';
+		for (i = 0; i < node.length; i++) {
+			ret += pad(node.charCodeAt(i).toString(16), 2);
 		}
 		return ret + '>';
-	  }
+		}
 	} else if (pdf_js.isArray(node)) {
-	  var ret = ['['];
-	  for (var i = 0; i < node.length; i++) {
-		ret.push(serialize(node[i], refsToVisit, visitedRefs));
-	  }
-	  ret.push(']');
-	  return ret.join(' ');
+		ret = ['['];
+		for (i = 0; i < node.length; i++) {
+			ret.push(serialize(node[i], uncompressed));
+		}
+		ret.push(']');
+		return ret.join(' ');
 	} else if (pdf_js.isDict(node)) {
-	  var map = node.map;
-	  var ret = ['<<'];
-	  for (var key in map) {
-		ret.push('/' + key + ' ' + serialize(map[key], refsToVisit, visitedRefs));
-	  }
-	  ret.push('>>');
-	  return ret.join('\n');
+		var map = node.map;
+		ret = ['<<'];
+		for (var key in map) {
+			ret.push('/' + key + ' ' + serialize(map[key], uncompressed));
+		}
+		ret.push('>>');
+		return ret.join('\n');
 	} else if (pdf_js.isStream(node)) {
-		var ret = '';
-		// TODO instead of deleting the metadata here set up a filter
+		ret = '';
 		delete node.dict.map.DecodeParms;
 		delete node.dict.map.Filter;
 
-		var bytes = node.bytes ? node.bytes : node.str.bytes;
-
+		var content = node.getBytes();
+		assert(content);
 		var out;
 		if (uncompressed) {
-			out = buf2str(bytes);
+			out = buf2str(content);
 			node.dict.map.Length = out.length;
 		} else {
-			var p = buf2str(bytes);
-			var arr = [];
-			var i = p.length;
-			while(i--) {
-				arr[i] = p.charCodeAt(i);
-			}
-			var adler32 = adler32cs.from(p);
-			var deflater = new Deflater(6);
-			deflater.append(new Uint8Array(arr));
-			var p = deflater.flush();
-			var arr = new Uint8Array(p.length + 6);
-			arr.set(new Uint8Array([120, 156])),
-			arr.set(p, 2);
-			arr.set(new Uint8Array([adler32 & 0xFF, (adler32 >> 8) & 0xFF, (adler32 >> 16) & 0xFF, (adler32 >> 24) & 0xFF]), p.length+2);
-			p = String.fromCharCode.apply(null, arr);
-			out = p;
+			out = buf2str(pako.deflate(content));
 			node.dict.map.Length = out.length;
 			node.dict.map.Filter = [new pdf_js.Name('FlateDecode')];
 		}
 
-	  ret += serialize(node.dict, refsToVisit, visitedRefs);
-	  ret += '\nstream\n';
-	  ret += out;
-	  ret += '\nendstream\n';
-	  return ret;
+		assert(pdf_js.isDict(node.dict));
+		ret += serialize(node.dict, uncompressed);
+		ret += '\nstream\n';
+		ret += out;
+		ret += '\nendstream\n';
+		return ret;
 	} else {
-	  debugger;
-	  throw new Error('Unknown node type. ' + node);
+		throw new Error('Unknown node type ' + JSON.stringify(node));
 	}
   }
-
-  function newDict(map) {
-	var dict = new pdf_js.Dict();
-	dict.map = map;
-	return dict;
-  }
-
-  function newStream(map, str) {
-	var dict = newDict(map);
-	var data = new Uint8Array(str.length);
-	for (var i = 0; i < str.length; i++) {
-	  data[i] = str.charCodeAt(i);
-	}
-	var stream = new pdf_js.Stream(data, 0, str.length, dict);
-	return stream;
-  }
-
-
-
-
 
 // End of code from pdf.utils.js
 
-
-function max_gen(xref) {
-	var max = 0;
-	for (var i = 0;i < xref.entries.length;i++) {
-		var e = xref.entries[i];
-		if ((e.gen != 65535) && (e.gen > max)) {
-			max = e.gen;
-		}
-	}
-	return max;
-}
-
-
-function PDFObjects(entries) {
-	this.entries = entries;
+function PDFObjects(xref) {
+	this.entries = xref.entries;
 }
 PDFObjects.prototype = {
 add: function(obj, gen) {
@@ -279,26 +210,28 @@ add: function(obj, gen) {
 	this.entries.push(e);
 	return e;
 },
-update: function(id, obj, gen) {
+update: function(ref, obj) {
+	assert(ref.num !== undefined);
+	assert(ref.gen !== undefined);
 	var e = {
 		obj: obj,
-		gen: gen,
-		id: id,
+		gen: ref.gen,
+		id: ref.num,
 		uncompressed: 'added',
 	};
-	this.entries[id] = e;
+	this.entries[e.id] = e;
 	return e;
 },
 write_object: function(out, e, uncompressed) {
 	e.offset = out.position();
-	assert(e.id);
-	var bs = serialize(e.obj, [], new pdf_js.RefSet(), uncompressed);
+	assert(e.id !== undefined);
+	var bs = serialize(e.obj, uncompressed);
 	out.write_str(e.id + ' ' + e.gen + ' obj\n');
 	out.write_str(bs);
 	out.write_str('\nendobj\n');
 },
 write_xref_stream: function(out, prev, root_ref) {
-	var dict = {
+	var map = {
 		Type: new pdf_js.Name('XRef'),
 		Size: this.entries.length + 1, // + 1 for this object itself
 		Length: 6 * (this.entries.length + 1),
@@ -306,9 +239,8 @@ write_xref_stream: function(out, prev, root_ref) {
 		W: [1, 4, 1],
 	};
 	if (prev !== undefined) {
-		dict['Prev'] = prev;
+		map.Prev = prev;
 	}
-	var dict_obj = newDict(dict);
 
 	var bio = new BytesIO();
 	var entry = this.add('__xref_stream__', 0);
@@ -326,22 +258,11 @@ write_xref_stream: function(out, prev, root_ref) {
 	});
 	var ui8ar = bio.get_uint8array();
 
-	var stream = new pdf_js.Stream(ui8ar, 0, ui8ar.length, dict_obj);
+	var stream = pdf_js.newStream(map, ui8ar);
 	entry.obj = stream;
 	this.write_object(out, entry, true);
 },
 };
-
-function get_root_id(doc) {
-	return get_node_id(doc.xref.root);
-}
-
-function get_node_id(node) {
-	var obj_id = node.objId;
-	var m = /^([0-9]+)R$/.exec(obj_id);
-	assert(m, 'node object ID is strange: ' + obj_id);
-	return m[1];
-}
 
 function visit_acroform_fields(doc, callback) {
 	var to_visit = doc.acroForm.map.Fields.slice();
@@ -354,9 +275,7 @@ function visit_acroform_fields(doc, callback) {
 		}
 
 		if (n.map && n.map.Kids) {
-			n.map.Kids.forEach(function(k) {
-				to_visit.push(k);
-			});
+			to_visit.push.apply(to_visit, n.map.Kids);
 		} else if (n.map && n.map.Type && n.map.Type.name == 'Annot') {
 			callback(n);
 		}
@@ -389,32 +308,32 @@ function acroform_match_spec(n, fields) {
 
 function modify_xfa(doc, objects, out, index, callback) {
 	var xfa = doc.acroForm.map.XFA;
-	var xfa_idx = xfa.indexOf(index);
-	var xfa_ref = xfa[xfa_idx + 1];
-	var xfa_node = doc.xref.fetch(xfa_ref);
-	var bs = xfa_node.getBytes();
+	var section_idx = xfa.indexOf(index);
+	assert(section_idx >= 0);
+	var section_ref = xfa[section_idx + 1];
+	var section_node = doc.xref.fetch(section_ref);
+	assert(pdf_js.isStream(section_node), 'XFA section node should be a stream');
+	var bs = section_node.getBytes();
+	assert(bs);
 	var str = (new TextDecoder('utf-8')).decode(bs);
 
 	str = callback(str);
  
 	var out_bs = (new TextEncoder('utf-8').encode(str));
-	xfa_node.bytes = out_bs;
-	xfa_node.length = out_bs.length;
-	
-	var e = objects.update(xfa_ref.num, xfa_node, xfa_ref.gen);
+	var out_node = pdf_js.newStream(section_node.dict.map, out_bs);
+	assert(pdf_js.isStream(out_node));
+
+	var e = objects.update(section_ref, out_node);
 	objects.write_object(out, e);
 }
 
 function transform(data, fields) {
-	var doc = new pdf_js.PDFDocument(null, new Uint8Array(data));
-	doc.checkHeader();
-	doc.parseStartXRef();
-	doc.parse();
+	var doc = pdf_js.parse(new Uint8Array(data));
 
 	var out = new BytesIO();
 	out.write_buf(data);
 
-	var objects = new PDFObjects(doc.xref.entries);
+	var objects = new PDFObjects(doc.xref);
 
 	// Change AcroForms
 	visit_acroform_fields(doc, function(n) {
@@ -424,7 +343,7 @@ function transform(data, fields) {
 		}
 
 		if (n.map.FT.name == 'Tx') {
-			n.map.V = n.map.DV = '' + spec;
+			n.map.V = '' + spec;
 		} else if (n.map.FT.name == 'Btn') {
 			n.map.AS = n.map.V = n.map.DV = spec ? new pdf_js.Name('Yes') : new pdf_js.Name('Off');
 		} else {
@@ -432,25 +351,20 @@ function transform(data, fields) {
 		}
 
 		var ref = n._pdfform_ref;
-		var e = objects.update(ref.num, n, ref.gen);
+		var e = objects.update(ref, n);
 		objects.write_object(out, e);
 	});
+	// Set NeedAppearances in AcroForm dict
+	var acroform_ref = doc.catalog.catDict.map.AcroForm;
+	doc.acroForm.map['NeedAppearances'] = true;
+	var e = objects.update(acroform_ref, doc.acroForm);
+	objects.write_object(out, e);
+
 
 	// Change XFA
-	modify_xfa(doc, objects, out, 'template', function(str) {
-		// Manually check checkboxes (this is for bup only)
-		str = str.replace(
-			/(<value\s*><integer\s*>)0(<\/integer)/g,
-			function (_, g1, g2) {
-				return g1 + '1' + g2;
-			}
-		);
-
-		return str;
-	});
 	modify_xfa(doc, objects, out, 'datasets', function(str) {
 		// Fix up XML
-		str = str.replace(/\n(\/?>)/g, '$1\n')
+		str = str.replace(/\n(\/?>)/g, '$1\n');
 
 		var ds_doc = new DOMParser().parseFromString(str);
 		for (var f in fields) {
@@ -474,12 +388,11 @@ function transform(data, fields) {
 		}
 
 		str = new XMLSerializer().serializeToString(ds_doc);
-		// str = str.replace(/(<\/[0-9a-zA-Z]+)>\s+</g, '$1\n><')
 		return str;
 	});
 
 	var startxref = out.position();
-	var root_id = get_root_id(doc);
+	var root_id = doc.get_root_id();
 	var root_ref = new pdf_js.Ref(root_id, 0);
 	objects.write_xref_stream(out, doc.startXRef, root_ref);
 

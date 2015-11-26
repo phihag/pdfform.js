@@ -6,45 +6,41 @@ help:
 	@echo '  test          Run tests'
 	@echo '  lint          Verify source code quality'
 	@echo '  clean         Remove temporary files'
+	@echo '  dist          Produce distributable file (dist branch only)'
 	@echo '  help          This message'
-
 
 install-libs:
 	test -e libs/.completed || $(MAKE) force-install-libs
 
 force-install-libs:
 	mkdir -p libs
-	#wget https://raw.githubusercontent.com/mozilla/pdfjs-dist/master/build/pdf.combined.js -O libs/pdf.combined.js
-	wget https://raw.githubusercontent.com/chick307/adler32cs.js/master/adler32cs.js -O libs/adler32cs.js
-	#wget https://raw.githubusercontent.com/MrRio/jsPDF/master/libs/deflate.js -O libs/deflate.js
-
+	wget https://raw.githubusercontent.com/nodeca/pako/master/dist/pako.min.js -O libs/pako.min.js
 	touch libs/.completed
 
 deps: install-libs
 	(node --version && npm --version) >/dev/null 2>/dev/null || sudo apt-get install nodejs npm
 	npm install
 
-test:
-	@npm test
-
 lint: jshint eslint
 
 jshint:
-	@jshint js/*.js div/*.js test/*.js div/*.js cachesw.js
+	@jshint *.js
 
 eslint:
-	@eslint js/*.js div/*.js test/*.js div/*.js cachesw.js
+	@eslint *.js
 
-coverage:
-	istanbul cover _mocha -- -R spec
+clean_dist:
+	rm -rf -- dist
 
-coverage-display: coverage
-	xdg-open coverage/lcov-report/js/index.html
+test:
+	@npm test
 
-cd: coverage-display
+dist: clean_dist
+	mkdir -p dist
+	uglifyjs customlibs/deflate.js customlibs/pdf.worker.js pdfform.js  -o dist/pdfform.dist.js
 
-clean:
-	rm -rf -- libs
+clean: clean_dist
 	rm -rf -- node_modules
+	rm -rf -- libs
 
-.PHONY: default help deps test clean install-libs force-install-libs dist cleandist coverage coverage-display cd lint jshint eslint
+.PHONY: default help deps lint jshint eslint clean dist clean_dist test install-libs force-install-libs

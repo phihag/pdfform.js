@@ -1,0 +1,10 @@
+{
+	"newcap": false,
+	"globals": {
+		"document": false,
+		"window": false,
+
+		"require": false,
+		"module": false
+	}
+}
