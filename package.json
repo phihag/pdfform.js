@@ -7,7 +7,7 @@
 		"url": "git://github.com/phihag/pdfform.js.git"
 	},
 	"scripts": {
-		"test": "mocha test_minipdf.js"
+		"test": "mocha test/"
 	},
 	"dependencies": {
 		"xmldom": "*",

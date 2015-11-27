@@ -4,7 +4,7 @@ var fs = require('fs');
 (function() {
 'use strict';
 
-var minipdf = require('./minipdf');
+var minipdf = require('../minipdf');
 
 function assert_parse(s, expected) {
 	var buf = str2uint8ar(s + '   more');
@@ -188,7 +188,7 @@ describe('minipdf parsing', function() {
 	it('a real file', function() {
 		var buf;
 		try {
-			buf = fs.readFileSync('Spielberichtsbogen_2BL.pdf');
+			buf = fs.readFileSync(__dirname + '/../Spielberichtsbogen_2BL.pdf');
 		} catch(e) {
 			if (e.code == 'ENOENT') {
 				return;
@@ -201,7 +201,6 @@ describe('minipdf parsing', function() {
 		assert(doc.acroForm);
 		assert(doc.acroForm.map.XFA);
 	});
-
 });
 
 })();

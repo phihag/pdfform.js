@@ -24,10 +24,10 @@ deps: install-libs
 lint: jshint eslint
 
 jshint:
-	@jshint *.js
+	@jshint test/*.js *.js
 
 eslint:
-	@eslint *.js
+	@eslint test/*.js *.js
 
 clean_dist:
 	rm -rf -- dist

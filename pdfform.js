@@ -1,37 +1,50 @@
-(function() {
+if (typeof require != 'undefined') {
+	var DOMParser = require('xmldom').DOMParser;
+	var XMLSerializer = require('xmldom').XMLSerializer;
+	var text_encoding = require('text-encoding');
+	var TextEncoder = text_encoding.TextEncoder;
+	var TextDecoder = text_encoding.TextDecoder;
+
+	var pako = require('./libs/pako.min.js');
+	var minipdf = require('./minipdf.js');
+	// var minipdf = require('./pdf_js_compat.js');
+}
+
+var pdfform = (function() {
 'use strict';
-
-var fs = require('fs');
-var DOMParser = require('xmldom').DOMParser;
-var XMLSerializer = require('xmldom').XMLSerializer;
-var text_encoding = require('text-encoding');
-var TextEncoder = text_encoding.TextEncoder;
-var TextDecoder = text_encoding.TextDecoder;
-
-var pako = require('./libs/pako.min.js');
-var minipdf = require('./minipdf.js');
-// var minipdf = require('./pdf_js_compat.js');
 
 var assert = minipdf.assert;
 
 function BytesIO() {
 	this.length = 0;
-	this.buffers = [];
+	this.entries = [];
 }
 BytesIO.prototype = {
 	write_str: function(s) {
 		this.length += s.length;
-		this.buffers.push(new Buffer(s, 'binary'));
+		assert(typeof s == 'string');
+		this.entries.push(s);
 	},
 	write_buf: function(buf) {
 		this.length += buf.length;
-		this.buffers.push(buf);
-	},
-	get_buffer: function() {
-		return Buffer.concat(this.buffers);
+		assert(buf instanceof Uint8Array, 'Expected a Uint8Array, but got ' + JSON.stringify(buf));
+		this.entries.push(buf);
 	},
 	get_uint8array: function() {
-		return new Uint8Array(this.get_buffer());
+		var res = new Uint8Array(this.length);
+		var pos = 0;
+		this.entries.forEach(function(e) {
+			if (typeof e == 'string') {
+				for (var i = 0,slen = e.length;i < slen;i++,pos++) {
+					res[pos] = e.charCodeAt(i);
+				}
+			} else {
+				res.set(e, pos);
+				pos += e.length;
+			}
+		});
+		assert(pos == this.length);
+		return res;
 	},
 	position: function() {
 		return this.length;
@@ -79,13 +92,13 @@ function serialize(node, uncompressed) {
 		return '/' + node.name;
 	} else if (minipdf.isString(node)) {
 		if (!hasSpecialChar(node)) {
-		return '(' + node + ')';
+			return '(' + node + ')';
 		} else {
-		ret = '<';
-		for (i = 0; i < node.length; i++) {
-			ret += pad(node.charCodeAt(i).toString(16), 2);
-		}
-		return ret + '>';
+			ret = '<';
+			for (i = 0; i < node.length; i++) {
+				ret += pad(node.charCodeAt(i).toString(16), 2);
+			}
+			return ret + '>';
 		}
 	} else if (minipdf.isArray(node)) {
 		ret = ['['];
@@ -108,7 +121,7 @@ function serialize(node, uncompressed) {
 		delete node.dict.map.Filter;
 
 		var content = node.getBytes();
-		assert(content);
+		assert(content, 'expecting byte content from ' + JSON.stringify(node));
 		var out;
 		if (uncompressed) {
 			out = minipdf.buf2str(content);
@@ -184,7 +197,7 @@ write_xref_stream: function(out, prev, root_ref) {
 	entry.offset = out.position();
 	this.entries.forEach(function(e) {
 		assert(e.offset !== undefined, 'entry should have an offset');
-		bio.write_buf(new Buffer([
+		bio.write_buf(new Uint8Array([
 			(e.uncompressed ? 1 : 2),
 			(e.offset >> 24),
 			(e.offset >> 16) & 0xff,
@@ -336,52 +349,14 @@ function transform(data, fields) {
 	out.write_str(startxref + '\n');
 	out.write_str('%%EOF');
 
-	return out.get_buffer();
+	return out.get_uint8array();
 }
 
-function main() {
-	var in_fn = 'Spielberichtsbogen_2BL.pdf';
-	var out_fn = 'out.pdf';
-	
-	var read = fs.readFileSync(in_fn);
-	var fields = {
-		'NumerischesFeld1': [
-			1,
-			2,
-			3,
-			4,
-			5,
-			6,
-		],
-		'NumerischesFeld2': [
-			5, 6, 7, 8, 9, 10, 1, 2,
-			5, 6, 7, 8, 9, 10, 1, 2,
-			5, 6, 7, 8, 9, 10, 1, 2,
-			5, 6, 7, 8, 9, 10, 1, 2,
-			5, 6, 7, 8, 9, 10, 1, 2,
-			5, 6, 7, 8, 9, 10, 1, 2,
-			5, 6, 7, 8, 9, 10, 1, 2,
-		],
-		'Textfeld1': ['EIns'],
-		'Textfeld2': ['zwei'],
-		'Textfeld3': ['drei'],
-		'Textfeld4': ['vier'],
-		'Textfeld5': ['fünf'],
-		'Textfeld6': ['sechserlei'],
-		'Textfeld7': ['sieben'],
-		'Textfeld8': ['acht'],
-		'Textfeld9': ['a91', '92', 'foobar93', '94', '95', '96', '97', '98', 'more', 'content', 'all', 'around the the world with really long'],
-		'Textfeld10': ['zehn-1', 'zehn2', 'zehn-3', 'zehn-4', 'zehn-5', 'zehn-6', 'zehn-7', 'zehn-8', 'zehn-9'],
-		'Textfeld11': ['elfß'],
-		'Textfeld12': ['zölfe'],
-		'Textfeld13': ['dreizehn'],
-		'Kontrollkästchen1': [true],
-		'#field[91]': [true],
-		'Optionsfeldliste': [true, true, true],
-	};
-	var res = transform(read, fields);
-	fs.writeFileSync(out_fn, res, {encoding: 'binary'});
-}
-
-main();
+return {
+	transform: transform,
+};
 })();
+
+if (typeof module != 'undefined') {
+	module.exports = pdfform;
+}

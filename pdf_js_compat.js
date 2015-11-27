@@ -58,7 +58,13 @@ pdf_js.buf2str = function(buf) {
 	}
 	return res;
 };
-
+pdf_js.str2buf = function(s) {
+	var uint = new Uint8Array(s.length);
+	for(var i=0,slen=s.length;i < slen;i++){
+		uint[i] = s.charCodeAt(i);
+	}
+	return uint;
+};
 
 return pdf_js;
 })();

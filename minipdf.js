@@ -23,6 +23,7 @@ Stream.prototype.getBytes = function() {
 	return this.content;
 };
 function newStream(map, content) {
+	assert(content instanceof Uint8Array, 'stream content must be an Uint8Array');
 	return new Stream(map, content);
 }
 function isStream(obj) {
@@ -57,6 +58,14 @@ function assert(x, msg) {
 		msg = 'Assertion failed';
 	}
 	throw new Error(msg);
+}
+
+function str2buf(s) {
+	var uint = new Uint8Array(s.length);
+	for(var i=0,slen=s.length;i < slen;i++){
+		uint[i] = s.charCodeAt(i);
+	}
+	return uint;
 }
 
 function png_filter(content, columns) {
@@ -429,8 +438,12 @@ PDFReader.prototype = {
 			this.pos = sav_pos;
 		}
 
-		assert(obj instanceof Stream, 'XRefs should be a stream, got ' + JSON.stringify(obj) + ' instead');
-		assert(obj.map.Type.name === 'XRef', 'XRef table should be of Type XRef');
+		assert(
+			obj instanceof Stream,
+			'XRefs should be a stream, got ' + JSON.stringify(obj) + ' instead');
+		assert(
+			obj.map.Type.name === 'XRef',
+			'XRef table should be of Type XRef');
 		assert(obj.map.W.length == 3);
 		var type_length = obj.map.W[0];
 		assert(type_length <= 4);
@@ -579,6 +592,7 @@ return {
 	newStream: newStream,
 	assert: assert,
 	buf2str: buf2str,
+	str2buf: str2buf,
 
 	// Testing only
 	PDFReader: PDFReader,
