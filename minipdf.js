@@ -1,8 +1,8 @@
 var minipdf = (function() {
 'use strict';
 
-var Name = function (val) {
-	this.val = val;
+var Name = function (name) {
+	this.name = name;
 };
 function isName(obj) {
 	return obj instanceof Name;
@@ -18,6 +18,13 @@ var Stream = function(map, content) {
 	this.content = content;
 	this.dict = new Dict(map);
 };
+// pdf.js compatibility
+Stream.prototype.getBytes = function() {
+	return this.content;
+}
+function newStream(map, content) {
+	return new Stream(map, content);
+}
 function isStream(obj) {
 	return obj instanceof Stream;
 }
@@ -121,15 +128,18 @@ function newStream(map, content) {
 }
 
 var PDFDocument = function(buf) {
+	this._cached_object_streams = {};
+
 	this.buf = buf;
 	this.reader = new PDFReader(buf);
 
 	check_header(buf);
 	this.startxref = find_startxref(buf);
 	this.reader.pos = this.startxref;
+
 	var xref_res = this.reader.parse_xref();
 	this.xref = xref_res.xref;
-	assert(this.xref);
+	assert(isArray(this.xref));
 	this.meta = xref_res.meta;
 	assert(this.meta.Root);
 	assert(this.meta.Root instanceof Ref);
@@ -138,8 +148,14 @@ var PDFDocument = function(buf) {
 	this.acroForm = this.fetch(this.root.map.AcroForm);
 };
 PDFDocument.prototype.get_root_id = function() {
-	return doc.meta.Root.num;
-}
+	return this.meta.Root.num;
+};
+PDFDocument.prototype.get_xref_entries = function() {
+	return this.xref;
+};
+PDFDocument.prototype.get_acroform_ref = function() {
+	return this.root.map.AcroForm;
+};
 PDFDocument.prototype.fetch = function(ref, recursive) {
 	assert(ref instanceof Ref);
 
@@ -157,8 +173,12 @@ PDFDocument.prototype.fetch = function(ref, recursive) {
 		if (ref.gen !== 0) {
 			throw new Error('Object with reference ' + ref.gen + ' cannot be found in object stream');
 		}
-		var object_stream_obj = this.fetch(new Ref(xref_entry.offset, 0), true);
-		var object_stream = parse_object_stream(object_stream_obj);
+		var object_stream = this._cached_object_streams[xref_entry.offset];
+		if (! object_stream) {
+			var object_stream_obj = this.fetch(new Ref(xref_entry.offset, 0), true);
+			object_stream = parse_object_stream(object_stream_obj);
+			this._cached_object_streams[xref_entry.offset] = object_stream;
+		}
 		if (! (ref.num in object_stream)) {
 			throw new Error(
 				'Could not find object ' + ref.num +
@@ -290,11 +310,11 @@ PDFReader.prototype = {
 			}
 			this.pos++;
 		}
-		var val = buf2str(this.buf, start_pos, this.pos);
-		val = val.replace(/#([0-9a-fA-F]{2})/g, function(_, hex) {
+		var name = buf2str(this.buf, start_pos, this.pos);
+		name = name.replace(/#([0-9a-fA-F]{2})/g, function(_, hex) {
 			return String.fromCharCode(parseInt(hex, 16));
 		});
-		return new Name(val);
+		return new Name(name);
 	},
 	parse_array: function() {
 		var res = [];
@@ -321,7 +341,7 @@ PDFReader.prototype = {
 			}
 			var k = this.parse_name();
 			var v = this.parse();
-			map[k.val] = v;
+			map[k.name] = v;
 		}
 		var sav_pos = this.pos;
 		this.skip_space();
@@ -351,13 +371,12 @@ PDFReader.prototype = {
 			for (var i = 0;i < filters.length;i++) {
 				var params = params[i];
 
-				switch (filters[i].val) {
+				switch (filters[i].name) {
 				case 'FlateDecode':
 					content = inflate(content, params ? params.map : params);
-					require('fs').writeFileSync('stream', buf2str(content, 0, content.length), 'utf8');
 					break;
 				default:
-					throw new Error('Unsupported filter: ' + JSON.stringify(filters[i].val));
+					throw new Error('Unsupported filter: ' + JSON.stringify(filters[i].name));
 				}
 			}
 		}
@@ -405,7 +424,7 @@ PDFReader.prototype = {
 	},
 	parse_xref: function() {
 		var obj = this.parse_object().obj;
-		var xref = {};
+		var xref = [];
 
 		if ('Prev' in obj.map) {
 			var sav_pos = this.pos;
@@ -415,7 +434,7 @@ PDFReader.prototype = {
 		}
 
 		assert(obj instanceof Stream, 'XRefs should be a stream, got ' + JSON.stringify(obj) + ' instead');
-		assert(obj.map.Type.val === 'XRef', 'XRef table should be of Type XRef');
+		assert(obj.map.Type.name === 'XRef', 'XRef table should be of Type XRef');
 		assert(obj.map.W.length == 3);
 		var type_length = obj.map.W[0];
 		assert(type_length <= 4);
@@ -449,6 +468,7 @@ PDFReader.prototype = {
 			var offset = reader.read_uint(offset_length);
 			var gen = reader.read_uint(gen_length);
 			xref[first_index + i] = {
+				uncompressed: type != 2,
 				type: type,
 				offset: offset,
 				gen: gen,
@@ -496,8 +516,15 @@ function startswith(buf, pos, str) {
 }
 
 function buf2str(buf, from, to) {
-	var res = '';
+	if (from === undefined) {
+		from = 0;
+	}
+	if (to === undefined) {
+		to = buf.length;
+	}
 	var max = Math.min(to, buf.length);
+
+	var res = '';
 	for (var i = from;i < max;i++) {
 		res += String.fromCharCode(buf[i]);
 	}
@@ -522,11 +549,11 @@ function find_startxref(buf) {
 
 function parse_object_stream(os_obj) {
 	assert(
-		os_obj.map.Type.val === 'ObjStm',
-		'Strange Type for an object stream: ' + JSON.stringify(os_obj.map.Type.val));
+		os_obj.map.Type.name === 'ObjStm',
+		'Strange Type for an object stream: ' + JSON.stringify(os_obj.map.Type.name));
 	var s = buf2str(os_obj.content, 0, os_obj.map.First);
 	var rex = /\s*([0-9]+)\s+([0-9]+)/g;
-	var res = {};
+	var res = [];
 	var r = new PDFReader(os_obj.content);
 	for (var i = 0;i < os_obj.map.N;i++) {
 		var m = rex.exec(s);
@@ -553,6 +580,9 @@ return {
 	isArray: isArray,
 	isString: isString,
 	isBool: isBool,
+	newStream: newStream,
+	assert: assert,
+	buf2str: buf2str,
 
 	// Testing only
 	PDFReader: PDFReader,

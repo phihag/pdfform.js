@@ -1,17 +1,11 @@
-fix rfa
-
-switch to minipdf
 profiler for minipdf (cache object stream results!)
+	cache fetched objects from object stream
+switch to minipdf
 
 remove Buffer instances and use Uint8array
 test in browser (make sure to remove main)
 dist my pdf.worker.js on GitHub
 
-render XFA and AF together (stackoverflow, adobe?)
-	include AP
-
 dependency in bup
 download file & serve in bup
 correct data in bup
-replace pdf.worker.js with minipdf.js
-	cache fetched objects from object stream

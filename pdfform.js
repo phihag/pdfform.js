@@ -8,44 +8,11 @@ var text_encoding = require('text-encoding');
 var TextEncoder = text_encoding.TextEncoder;
 var TextDecoder = text_encoding.TextDecoder;
 
-
-
-global.PDFJS = {};
-global.navigator = {
-	userAgent: 'pdfform.js',
-};
-PDFJS.disableStream = true;
-PDFJS.disableRange = true;
-var pdf_js = require('./customlibs/pdf.worker.js');
-assert(!pdf_js.parse);
-pdf_js.parse = function(buf) {
-	var doc = new pdf_js.PDFDocument(null, buf);
-	doc.checkHeader();
-	doc.parseStartXRef();
-	doc.parse();
-	doc.get_root_id = function() {
-		var obj_id = this.catalog.catDict.objId;
-		var m = /^([0-9]+)R$/.exec(obj_id);
-		assert(m);
-		return parseInt(m[1], 10);
-	};
-	return doc;
-};
-pdf_js.newDict = function(map) {
-	var dict = new pdf_js.Dict();
-	dict.map = map;
-	return dict;
-};
-pdf_js.newStream = function(map, buf) {
-	var dict = pdf_js.newDict(map);
-	return new pdf_js.Stream(buf, 0, buf.length, dict);
-};
-
-
-
 var pako = require('./libs/pako.min.js');
 var minipdf = require('./minipdf.js');
+// var minipdf = require('./pdf_js_compat.js');
 
+var assert = minipdf.assert;
 
 function adler32_buf(buf) {
 	var a = 1;
@@ -83,28 +50,8 @@ BytesIO.prototype = {
 	},
 };
 
-function assert(x, msg) {
-	if (x) {
-		return;
-	}
-	if (!msg) {
-		msg = 'Assertion failed';
-	}
-	throw new Error(msg);
-}
-
-function buf2str(buf) {
-	var res = '';
-	for (var i = 0; i < buf.length; i++) {
-		res += String.fromCharCode(buf[i]);
-	}
-	return res;
-}
-
-
 
 // Code from pdf.utils.js (ASL2) starts here
-
 function pad(num, length) {
   var ret = num + '';
   while (ret.length < length) {
@@ -133,15 +80,16 @@ function hasSpecialChar(str) {
 
 function serialize(node, uncompressed) {
 	var i, ret;  // Wishing for let in modern browsers :(
-	if (pdf_js.isRef(node)) {
+	if (minipdf.isRef(node)) {
 		return node.num + ' ' + node.gen + ' R';
-	} else if (pdf_js.isNum(node)) {
+	} else if (minipdf.isNum(node)) {
 		return node;
-	} else if (pdf_js.isBool(node)) {
+	} else if (minipdf.isBool(node)) {
 		return node;
-	} else if (pdf_js.isName(node)) {
+	} else if (minipdf.isName(node)) {
+		assert(node.name);
 		return '/' + node.name;
-	} else if (pdf_js.isString(node)) {
+	} else if (minipdf.isString(node)) {
 		if (!hasSpecialChar(node)) {
 		return '(' + node + ')';
 		} else {
@@ -151,14 +99,14 @@ function serialize(node, uncompressed) {
 		}
 		return ret + '>';
 		}
-	} else if (pdf_js.isArray(node)) {
+	} else if (minipdf.isArray(node)) {
 		ret = ['['];
 		for (i = 0; i < node.length; i++) {
 			ret.push(serialize(node[i], uncompressed));
 		}
 		ret.push(']');
 		return ret.join(' ');
-	} else if (pdf_js.isDict(node)) {
+	} else if (minipdf.isDict(node)) {
 		var map = node.map;
 		ret = ['<<'];
 		for (var key in map) {
@@ -166,7 +114,7 @@ function serialize(node, uncompressed) {
 		}
 		ret.push('>>');
 		return ret.join('\n');
-	} else if (pdf_js.isStream(node)) {
+	} else if (minipdf.isStream(node)) {
 		ret = '';
 		delete node.dict.map.DecodeParms;
 		delete node.dict.map.Filter;
@@ -175,15 +123,15 @@ function serialize(node, uncompressed) {
 		assert(content);
 		var out;
 		if (uncompressed) {
-			out = buf2str(content);
+			out = minipdf.buf2str(content);
 			node.dict.map.Length = out.length;
 		} else {
-			out = buf2str(pako.deflate(content));
+			out = minipdf.buf2str(pako.deflate(content));
 			node.dict.map.Length = out.length;
-			node.dict.map.Filter = [new pdf_js.Name('FlateDecode')];
+			node.dict.map.Filter = [new minipdf.Name('FlateDecode')];
 		}
 
-		assert(pdf_js.isDict(node.dict));
+		assert(minipdf.isDict(node.dict));
 		ret += serialize(node.dict, uncompressed);
 		ret += '\nstream\n';
 		ret += out;
@@ -196,15 +144,16 @@ function serialize(node, uncompressed) {
 
 // End of code from pdf.utils.js
 
-function PDFObjects(xref) {
-	this.entries = xref.entries;
+function PDFObjects(doc) {
+	this.entries = doc.get_xref_entries();
+	assert(minipdf.isArray(this.entries), 'xref entries should be an Array');
 }
 PDFObjects.prototype = {
 add: function(obj, gen) {
 	var e = {
 		obj: obj,
 		gen: gen,
-		id: this.entries.length,
+		num: this.entries.length,
 		uncompressed: 'added',
 	};
 	this.entries.push(e);
@@ -216,23 +165,23 @@ update: function(ref, obj) {
 	var e = {
 		obj: obj,
 		gen: ref.gen,
-		id: ref.num,
+		num: ref.num,
 		uncompressed: 'added',
 	};
-	this.entries[e.id] = e;
+	this.entries[e.num] = e;
 	return e;
 },
 write_object: function(out, e, uncompressed) {
 	e.offset = out.position();
-	assert(e.id !== undefined);
+	assert(e.num !== undefined);
 	var bs = serialize(e.obj, uncompressed);
-	out.write_str(e.id + ' ' + e.gen + ' obj\n');
+	out.write_str(e.num + ' ' + e.gen + ' obj\n');
 	out.write_str(bs);
 	out.write_str('\nendobj\n');
 },
 write_xref_stream: function(out, prev, root_ref) {
 	var map = {
-		Type: new pdf_js.Name('XRef'),
+		Type: new minipdf.Name('XRef'),
 		Size: this.entries.length + 1, // + 1 for this object itself
 		Length: 6 * (this.entries.length + 1),
 		Root: root_ref,
@@ -258,7 +207,7 @@ write_xref_stream: function(out, prev, root_ref) {
 	});
 	var ui8ar = bio.get_uint8array();
 
-	var stream = pdf_js.newStream(map, ui8ar);
+	var stream = minipdf.newStream(map, ui8ar);
 	entry.obj = stream;
 	this.write_object(out, entry, true);
 },
@@ -268,9 +217,9 @@ function visit_acroform_fields(doc, callback) {
 	var to_visit = doc.acroForm.map.Fields.slice();
 	while (to_visit.length > 0) {
 		var n = to_visit.shift();
-		if (pdf_js.isRef(n)) {
+		if (minipdf.isRef(n)) {
 			var ref = n;
-			n = doc.xref.fetch(n);
+			n = doc.fetch(n);
 			n._pdfform_ref = ref;
 		}
 
@@ -311,8 +260,8 @@ function modify_xfa(doc, objects, out, index, callback) {
 	var section_idx = xfa.indexOf(index);
 	assert(section_idx >= 0);
 	var section_ref = xfa[section_idx + 1];
-	var section_node = doc.xref.fetch(section_ref);
-	assert(pdf_js.isStream(section_node), 'XFA section node should be a stream');
+	var section_node = doc.fetch(section_ref);
+	assert(minipdf.isStream(section_node), 'XFA section node should be a stream');
 	var bs = section_node.getBytes();
 	assert(bs);
 	var str = (new TextDecoder('utf-8')).decode(bs);
@@ -320,20 +269,19 @@ function modify_xfa(doc, objects, out, index, callback) {
 	str = callback(str);
  
 	var out_bs = (new TextEncoder('utf-8').encode(str));
-	var out_node = pdf_js.newStream(section_node.dict.map, out_bs);
-	assert(pdf_js.isStream(out_node));
+	var out_node = minipdf.newStream(section_node.dict.map, out_bs);
+	assert(minipdf.isStream(out_node));
 
 	var e = objects.update(section_ref, out_node);
 	objects.write_object(out, e);
 }
 
 function transform(data, fields) {
-	var doc = pdf_js.parse(new Uint8Array(data));
+	var doc = minipdf.parse(new Uint8Array(data));
+	var objects = new PDFObjects(doc);
 
 	var out = new BytesIO();
 	out.write_buf(data);
-
-	var objects = new PDFObjects(doc.xref);
 
 	// Change AcroForms
 	visit_acroform_fields(doc, function(n) {
@@ -345,7 +293,7 @@ function transform(data, fields) {
 		if (n.map.FT.name == 'Tx') {
 			n.map.V = '' + spec;
 		} else if (n.map.FT.name == 'Btn') {
-			n.map.AS = n.map.V = n.map.DV = spec ? new pdf_js.Name('Yes') : new pdf_js.Name('Off');
+			n.map.AS = n.map.V = n.map.DV = spec ? new minipdf.Name('Yes') : new minipdf.Name('Off');
 		} else {
 			throw new Error('Unsupported input type' + n.map.FT.name);
 		}
@@ -355,7 +303,7 @@ function transform(data, fields) {
 		objects.write_object(out, e);
 	});
 	// Set NeedAppearances in AcroForm dict
-	var acroform_ref = doc.catalog.catDict.map.AcroForm;
+	var acroform_ref = doc.get_acroform_ref();
 	doc.acroForm.map['NeedAppearances'] = true;
 	var e = objects.update(acroform_ref, doc.acroForm);
 	objects.write_object(out, e);
@@ -393,7 +341,7 @@ function transform(data, fields) {
 
 	var startxref = out.position();
 	var root_id = doc.get_root_id();
-	var root_ref = new pdf_js.Ref(root_id, 0);
+	var root_ref = new minipdf.Ref(root_id, 0);
 	objects.write_xref_stream(out, doc.startXRef, root_ref);
 
 	out.write_str('startxref\n');
