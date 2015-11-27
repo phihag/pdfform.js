@@ -1,7 +1,5 @@
-remove Buffer instances and use Uint8array
-
-test in browser (make sure to remove main)
-dist my pdf.worker.js on GitHub
+dist on GitHub
+test in browser
 
 dependency in bup
 download file & serve in bup
