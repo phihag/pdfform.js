@@ -14,18 +14,6 @@ var minipdf = require('./minipdf.js');
 
 var assert = minipdf.assert;
 
-function adler32_buf(buf) {
-	var a = 1;
-	var b = 0;
-	var MOD = 65521;
-
-	for (var i = 0;i < buf.length;i++) {
-		a = (a + buf[i]) % MOD;
-		b = (b + a) % MOD;
-    }
-    return ((b << 16) | a) >>> 0; // >>> 0 forces the result to be interpreted as unsigned int
-}
-
 function BytesIO() {
 	this.length = 0;
 	this.buffers = [];
@@ -194,7 +182,7 @@ write_xref_stream: function(out, prev, root_ref) {
 	var bio = new BytesIO();
 	var entry = this.add('__xref_stream__', 0);
 	entry.offset = out.position();
-	this.entries.forEach(function(e, i) {
+	this.entries.forEach(function(e) {
 		assert(e.offset !== undefined, 'entry should have an offset');
 		bio.write_buf(new Buffer([
 			(e.uncompressed ? 1 : 2),
@@ -304,7 +292,7 @@ function transform(data, fields) {
 	});
 	// Set NeedAppearances in AcroForm dict
 	var acroform_ref = doc.get_acroform_ref();
-	doc.acroForm.map['NeedAppearances'] = true;
+	doc.acroForm.map.NeedAppearances = true;
 	var e = objects.update(acroform_ref, doc.acroForm);
 	objects.write_object(out, e);
 

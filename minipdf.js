@@ -21,7 +21,7 @@ var Stream = function(map, content) {
 // pdf.js compatibility
 Stream.prototype.getBytes = function() {
 	return this.content;
-}
+};
 function newStream(map, content) {
 	return new Stream(map, content);
 }
@@ -46,7 +46,7 @@ function isNum(obj) {
 	return typeof obj == 'number';
 }
 function isArray(obj) {
-	return obj instanceof Array
+	return obj instanceof Array;
 }
 
 function assert(x, msg) {
@@ -70,7 +70,7 @@ function png_filter(content, columns) {
 
 		if (filter === 0) {
 			for (x = 0;x < columns;x++) {
-				res[y * colums + x] = content[y * cols + 1 + x];
+				res[y * columns + x] = content[y * cols + 1 + x];
 			}
 		} else if (filter === 2) {
 			for (x = 0;x < columns;x++) {
@@ -114,17 +114,13 @@ function inflate(content, params_map) {
 	if ((predictor >= 10) && (predictor <= 15)) {
 		res = png_filter(res, columns);
 	} else {
-		throw new Error('Unsupported predictor ' + predictor)
+		throw new Error('Unsupported predictor ' + predictor);
 	}
 	return res;
 }
 
 function parse(buf) {
 	return new PDFDocument(buf);
-}
-
-function newStream(map, content) {
-	return new Stream(map, content);
 }
 
 var PDFDocument = function(buf) {
@@ -369,11 +365,11 @@ PDFReader.prototype = {
 			var filters = (map.Filter instanceof Array) ? map.Filter : [map.Filter];
 			var params = (map.DecodeParms instanceof Array) ? map.DecodeParms : [map.DecodeParms];
 			for (var i = 0;i < filters.length;i++) {
-				var params = params[i];
+				var filter_params = params[i];
 
 				switch (filters[i].name) {
 				case 'FlateDecode':
-					content = inflate(content, params ? params.map : params);
+					content = inflate(content, filter_params ? filter_params.map : filter_params);
 					break;
 				default:
 					throw new Error('Unsupported filter: ' + JSON.stringify(filters[i].name));

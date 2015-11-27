@@ -20,7 +20,7 @@ function assert_parse_name(s, expected) {
 	var r = new minipdf.PDFReader(buf);
 	var res = r.parse();
 	assert.ok(res instanceof minipdf.Name);
-	assert.equal(res.val, expected);
+	assert.equal(res.name, expected);
 }
 
 function str2uint8ar(s) {
@@ -148,7 +148,7 @@ describe('minipdf parsing', function() {
 	it('parse XRef Stream', function() {
 		var s = (
 			'1 0 obj<< /Root 12 0 R /Length 10 /Type /XRef /Size 2 /W [1 2 2]>>stream' +
-			'\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0aendstreamendobj');
+			'\x01\x02\x03\x04\x05\x02\x07\x08\x09\x0aendstreamendobj');
 		var buf = str2uint8ar(s);
 		var r = new minipdf.PDFReader(buf);
 		var res = r.parse_xref();
@@ -159,10 +159,10 @@ describe('minipdf parsing', function() {
 			Size: 2,
 			W: [1, 2, 2],
 		});
-		assert.deepStrictEqual(res.xref, {
-			0: {type: 1, offset: 0x203, gen: 0x405},
-			1: {type: 6, offset: 0x708, gen: 0x90a},
-		});
+		assert.deepStrictEqual(res.xref, [
+			{type: 1, offset: 0x203, gen: 0x405, uncompressed: true},
+			{type: 2, offset: 0x708, gen: 0x90a, uncompressed: false},
+		]);
 	});
 
 	it('parse XRef Stream with Prev', function() {
@@ -186,7 +186,16 @@ describe('minipdf parsing', function() {
 	});
 
 	it('a real file', function() {
-		var buf = fs.readFileSync('Spielberichtsbogen_2BL.pdf');
+		var buf;
+		try {
+			buf = fs.readFileSync('Spielberichtsbogen_2BL.pdf');
+		} catch(e) {
+			if (e.code == 'ENOENT') {
+				return;
+			} else {
+				throw e;
+			}
+		}
 		var doc = new minipdf.PDFDocument(buf);
 		assert.deepStrictEqual(doc.root.map.Type, new minipdf.Name('Catalog'));
 		assert(doc.acroForm);
