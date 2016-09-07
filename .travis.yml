@@ -1,0 +1,17 @@
+dist: trusty
+sudo: false
+
+language: node_js
+node_js:
+  - "4.1"
+  - 5
+install:
+  - make deps
+before_script:
+  - make lint
+script:
+  - make test
+notifications:
+  email:
+    - phihag@phihag.de
+
