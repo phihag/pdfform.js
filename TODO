@@ -1,6 +1,3 @@
-dist on GitHub
-test in browser
-
-dependency in bup
-download file & serve in bup
-correct data in bup
+add travis
+add README (dist/installation)
+add example (#1)
