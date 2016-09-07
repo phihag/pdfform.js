@@ -1,4 +1,4 @@
 dist
 libs
 node_modules
-*.pdf
+test/data/out.pdf

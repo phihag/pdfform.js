@@ -20,7 +20,8 @@
     },
     "env": {
         "node": true,
-        "browser": true
+        "browser": true,
+        "es6": true
     },
     "globals": {
         " (library names) ": 1,
@@ -29,6 +30,7 @@
         " (mocha) ": 1,
         "describe": 1,
         "it": 1,
+
     },
     "extends": "eslint:recommended"
 }

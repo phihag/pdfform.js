@@ -7,19 +7,10 @@ var pdfform = require('../pdfform.js');
 
 describe ('pdfform', function() {
 	it('example conversion', function() {
-		var in_fn = __dirname + '/../Spielberichtsbogen_2BL.pdf';
-		var out_fn = __dirname + '/../out.pdf';
+		var in_fn = __dirname + '/data/Spielberichtsbogen_2BL.pdf';
+		var out_fn = __dirname + '/data/out.pdf';
 
-		var in_buf;
-		try {
-			in_buf = fs.readFileSync(in_fn);
-		} catch(e) {
-			if (e.code == 'ENOENT') {
-				return;
-			} else {
-				throw e;
-			}
-		}
+		var in_buf = fs.readFileSync(in_fn);
 
 		var fields = {
 			'NumerischesFeld1': [

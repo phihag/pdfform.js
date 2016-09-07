@@ -315,7 +315,7 @@ function transform(data, fields) {
 		// Fix up XML
 		str = str.replace(/\n(\/?>)/g, '$1\n');
 
-		var ds_doc = new DOMParser().parseFromString(str, "application/xml");
+		var ds_doc = new DOMParser().parseFromString(str, 'application/xml');
 		for (var f in fields) {
 			var els = ds_doc.getElementsByTagName(f);
 
