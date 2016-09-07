@@ -21,10 +21,7 @@ deps: install-libs
 	(node --version && npm --version) >/dev/null 2>/dev/null || sudo apt-get install nodejs npm
 	npm install
 
-lint: jshint eslint
-
-jshint:
-	@jshint test/*.js *.js
+lint: eslint
 
 eslint:
 	@eslint test/*.js *.js
@@ -43,4 +40,4 @@ clean: clean_dist
 	rm -rf -- node_modules
 	rm -rf -- libs
 
-.PHONY: default help deps lint jshint eslint clean dist clean_dist test install-libs force-install-libs
+.PHONY: default help deps lint eslint clean dist clean_dist test install-libs force-install-libs
