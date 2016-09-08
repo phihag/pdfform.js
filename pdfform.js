@@ -1,3 +1,5 @@
+'use strict';
+
 if (typeof require != 'undefined') {
 	var DOMParser = require('xmldom').DOMParser;
 	var XMLSerializer = require('xmldom').XMLSerializer;
@@ -11,7 +13,6 @@ if (typeof require != 'undefined') {
 }
 
 var pdfform = (function() {
-'use strict';
 
 var assert = minipdf.assert;
 
@@ -256,6 +257,7 @@ function acroform_match_spec(n, fields) {
 	return undefined;
 }
 
+
 function modify_xfa(doc, objects, out, index, callback) {
 	var xfa = doc.acroForm.map.XFA;
 	var section_idx = xfa.indexOf(index);
@@ -265,9 +267,9 @@ function modify_xfa(doc, objects, out, index, callback) {
 	assert(minipdf.isStream(section_node), 'XFA section node should be a stream');
 	var bs = section_node.getBytes();
 	assert(bs);
-	var str = (new TextDecoder('utf-8')).decode(bs);
+	var prev_str = (new TextDecoder('utf-8')).decode(bs);
 
-	str = callback(str);
+	var str = callback(prev_str);
  
 	var out_bs = (new TextEncoder('utf-8').encode(str));
 	var out_node = minipdf.newStream(section_node.dict.map, out_bs);
@@ -308,7 +310,6 @@ function transform(data, fields) {
 	doc.acroForm.map.NeedAppearances = true;
 	var e = objects.update(acroform_ref, doc.acroForm);
 	objects.write_object(out, e);
-
 
 	// Change XFA
 	modify_xfa(doc, objects, out, 'datasets', function(str) {
@@ -352,8 +353,38 @@ function transform(data, fields) {
 	return out.get_uint8array();
 }
 
+function list_fields(data) {
+	var doc = minipdf.parse(new Uint8Array(data));
+	var res = {};
+
+	visit_acroform_fields(doc, function(n) {
+		var raw_name = pdf_decode_str(n.map.T);
+		var m = /^(.+?)\[([0-9]+)\]$/.exec(raw_name);
+		if (!m) return;
+
+		var itype;
+		if (n.map.FT.name == 'Tx') {
+			itype = 'string';
+		} else if (n.map.FT.name == 'Btn') {
+			itype = 'boolean';
+		} else {
+			throw new Error('Unsupported input type' + n.map.FT.name);
+		}
+
+		var name = m[1];
+		var index = parseInt(m[2], 10);
+		if (!res[name]) {
+			res[name] = [];
+		}
+		res[name][index] = itype;
+	});
+
+	return res;
+}
+
 return {
 	transform: transform,
+	list_fields: list_fields,
 };
 })();
 

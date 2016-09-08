@@ -1,9 +1,17 @@
-var fs = require('fs');
-
-(function() {
 'use strict';
 
+var assert = require('assert');
+var fs = require('fs');
+
 var pdfform = require('../pdfform.js');
+
+function repeat(val, len) {
+	var res = [];
+	while (len--) {
+		res.push(val);
+	}
+	return res;
+}
 
 describe ('pdfform', function() {
 	it('example conversion', function() {
@@ -50,6 +58,39 @@ describe ('pdfform', function() {
 		var res = pdfform.transform(in_buf, fields);
 		fs.writeFileSync(out_fn, new Buffer(res), {encoding: 'binary'});
 	});
-});
 
-})();
+	it('list fields', function(done) {
+		var in_fn = __dirname + '/data/Spielberichtsbogen_2BL.pdf';
+		fs.readFile(in_fn, function(err, contents) {
+			if (err) {
+				return done(err);
+			}
+			var fields = pdfform.list_fields(contents);
+
+			assert.deepStrictEqual(fields, {
+				'DruckenSchaltfläche1': ['boolean'],
+				'ZurücksetzenSchaltfläche1': ['boolean'],
+				'EMailSendenSchaltfläche1': ['boolean'],
+				'Kontrollkästchen1': ['boolean'],
+				'NumerischesFeld1': repeat('string', 8),
+				'NumerischesFeld2': repeat('string', 54),
+				'Optionsfeldliste': repeat('boolean', 3),
+				'Textfeld1': ['string'],
+				'Textfeld2': ['string'],
+				'Textfeld3': ['string'],
+				'Textfeld4': ['string'],
+				'Textfeld5': ['string'],
+				'Textfeld6': ['string'],
+				'Textfeld7': ['string'],
+				'Textfeld8': ['string'],
+				'Textfeld9': repeat('string', 16),
+				'Textfeld10': repeat('string', 24),
+				'Textfeld11': ['string'],
+				'Textfeld12': ['string'],
+				'Textfeld13': ['string'],
+				'Textfeld14': repeat('string', 5),
+			});
+			done();
+		});
+	});
+});
