@@ -26,11 +26,16 @@ PDF library:
 <form class="list_form">
 </form>
 
-
-<script src="../customlibs/pdf.worker.js"></script>
-<script src="../libs/pako.min.js"></script>
+<!-- In a real-life scenario, you want to chose EITHER minipdf (smaller) -->
 <script src="../minipdf.js"></script>
+
+<!-- .. OR pdf.js (huge, but better compatibility) -->
+<script src="../libs/pdf.worker.js"></script>
 <script src="../minipdf_js.js"></script>
+
+
+<!-- pako and pdfform.js are required either way -->
+<script src="../libs/pako.min.js"></script>
 <script src="../pdfform.js"></script>
 
 <!-- FileSaver.js is just needed for the demo, although you'll probably use it in some form as well -->
