@@ -1,8 +1,7 @@
+'use strict';
+
 var assert = require('assert');
 var fs = require('fs');
-
-(function() {
-'use strict';
 
 var minipdf = require('../minipdf');
 
@@ -211,5 +210,3 @@ describe('minipdf parsing', function() {
 		assert(doc.acroForm.map.XFA);
 	});
 });
-
-})();

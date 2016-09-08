@@ -24,7 +24,7 @@ deps: install-libs
 lint: eslint
 
 eslint:
-	@node_modules/.bin/eslint test/*.js *.js
+	@node_modules/.bin/eslint test/*.js docs/*.js *.js
 
 clean_dist:
 	rm -rf -- dist

@@ -1,0 +1,21 @@
+html,body {
+	font-size: 25px;
+}
+input,button {
+	font-size: inherit;
+}
+
+.error>div {
+	border: 1px solid red;
+	background: #ff9597;
+}
+.pdflib_selector {
+	margin-top: 0.5em;
+}
+
+.lib_form, .fill_form {
+	margin-top: 1em;
+}
+.fill {
+	font-size: 150%;
+}

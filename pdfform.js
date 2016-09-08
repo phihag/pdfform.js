@@ -28,7 +28,9 @@ BytesIO.prototype = {
 	},
 	write_buf: function(buf) {
 		this.length += buf.length;
-		assert(buf instanceof Uint8Array, 'Expected a Uint8Array, but got ' + JSON.stringify(buf));
+		assert(
+			buf instanceof Uint8Array,
+			'Expected a Uint8Array, but got ' + buf);
 		this.entries.push(buf);
 	},
 	get_uint8array: function() {
@@ -44,7 +46,7 @@ BytesIO.prototype = {
 				pos += e.length;
 			}
 		});
-		assert(pos == this.length);
+		assert(pos === this.length);
 		return res;
 	},
 	position: function() {
@@ -279,12 +281,12 @@ function modify_xfa(doc, objects, out, index, callback) {
 	objects.write_object(out, e);
 }
 
-function transform(data, fields) {
-	var doc = minipdf.parse(new Uint8Array(data));
+function transform(buf, fields) {
+	var doc = minipdf.parse(new Uint8Array(buf));
 	var objects = new PDFObjects(doc);
 
 	var out = new BytesIO();
-	out.write_buf(data);
+	out.write_buf(new Uint8Array(buf));
 
 	// Change AcroForms
 	visit_acroform_fields(doc, function(n) {

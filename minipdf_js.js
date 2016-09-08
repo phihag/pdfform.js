@@ -1,5 +1,6 @@
-var pdf_js = (function() {
 'use strict';
+
+var minipdf_js = (function() {
 
 function assert(x, msg) {
 	if (x) {
@@ -70,5 +71,5 @@ return pdf_js;
 })();
 
 if (typeof module != 'undefined') {
-	module.exports = pdf_js;
+	module.exports = minipdf_js;
 }
