@@ -46,20 +46,18 @@ function fill(buf) {
 			fields[key] = [];
 		}
 		var index = parseInt(input.getAttribute('data-idx'), 10);
-		var value = (input.getAttribute('type') === 'checkbox') ? !!input.value : input.value;
+		var value = (input.getAttribute('type') === 'checkbox') ? input.checked : input.value;
 		fields[key][index] = value;
 	});
-	console.log(JSON.stringify(fields));
-	fields = {};
 
-	var filled_pdf;
+	var filled_pdf; // Uint8Array
 	try {
 		filled_pdf = make_pdfform().transform(buf, fields);
 	} catch (e) {
 		return on_error(e);
 	}
 
-	var blob = new Blob(new Uint8Array(buf), {type: 'application/pdf'});
+	var blob = new Blob([filled_pdf], {type: 'application/pdf'});
 	saveAs(blob, 'pdfform.js_generated.pdf');
 }
 
@@ -67,7 +65,7 @@ function fill(buf) {
 // From here on just code for this demo.
 // This will not feature in your website
 function on_error(e) {
-	console.error(e, e.stack);
+	console.error(e, e.stack);  // eslint-disable-line no-console
 	var div = document.createElement('div');
 	div.appendChild(document.createTextNode(e.message));
 	document.querySelector('.error').appendChild(div);
@@ -109,11 +107,11 @@ document.addEventListener('DOMContentLoaded', function() {
 		xhr.open('GET', url, true);
 		xhr.responseType = 'arraybuffer';
 
-		xhr.onload = function(e) {
+		xhr.onload = function() {
 			if (this.status == 200) {
 				on_file(url.split(/\//).pop(), this.response);
 			} else {
-				error('failed to load URL (code: ' + this.status + ')');
+				on_error('failed to load URL (code: ' + this.status + ')');
 			}
 		};
 

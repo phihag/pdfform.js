@@ -14,18 +14,6 @@ function repeat(val, len) {
 }
 
 describe ('pdfform', function() {
-	it('breaking okular', function(done) {
-		// Generated via demo
-		var fields = {"DruckenSchaltfläche1":[true],"EMailSendenSchaltfläche1":[true],"Optionsfeldliste":[true,true,true],"Textfeld1":["1"],"Textfeld2":["2"],"Textfeld3":["3"],"Textfeld4":["4"],"Textfeld5":["5"],"Textfeld6":["6"],"Textfeld7":["7"],"Textfeld8":["8"],"NumerischesFeld1":["9","10","11","12","13","14","15","16"],"Textfeld9":["17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32"],"Textfeld10":["33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56"],"NumerischesFeld2":["57","58","59","60","61","62","63","64","65","66","67","68","69","70","71","72","73","74","75","76","77","78","79","80","81","82","83","84","85","86","87","88","89","90","91","92","93","94","95","96","97","98","99","100","101","102","103","104","105","106","107","108","109","110"],"Textfeld11":["111"],"Textfeld12":["112"],"Textfeld13":["113"],"Textfeld14":["114","115","116","117","118"],"ZurücksetzenSchaltfläche1":[true],"Kontrollkästchen1":[true]};
-		var in_fn = __dirname + '/data/Spielberichtsbogen_2BL.pdf';
-		var out_fn = __dirname + '/data/okular-breakage.pdf';
-		fs.readFile(in_fn, function(err, in_buf) {
-			if (err) return done(err);
-			var res = pdfform.transform(in_buf, fields);
-			fs.writeFile(out_fn, new Buffer(res), {encoding: 'binary'}, done);
-		});
-	});
-
 	it('example conversion', function() {
 		var in_fn = __dirname + '/data/Spielberichtsbogen_2BL.pdf';
 		var out_fn = __dirname + '/data/out.pdf';

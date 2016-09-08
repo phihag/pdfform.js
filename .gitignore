@@ -2,4 +2,3 @@ dist
 libs
 node_modules
 test/data/out.pdf
-test/data/okular-breakage.pdf
