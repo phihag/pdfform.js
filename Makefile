@@ -15,6 +15,8 @@ install-libs:
 force-install-libs:
 	mkdir -p libs
 	wget https://raw.githubusercontent.com/nodeca/pako/master/dist/pako.min.js -O libs/pako.min.js
+	wget https://github.com/mozilla/pdf.js/releases/download/v1.4.20/pdfjs-1.4.20-dist.zip -O libs/pdfjs.dist.zip
+	unzip -x -o -j -d libs/ libs/pdfjs.dist.zip build/pdf.worker.js
 	touch libs/.completed
 
 deps: install-libs
