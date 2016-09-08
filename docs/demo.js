@@ -1,7 +1,9 @@
 // Example of constructing pdfform
-// If you don't care about which PDF library to use, just use the following code instead
+// If you don't care about which PDF library to use, just call without arguments, as in
+// pdfform().transform(..) / pdfform().list_fields(...)
 function make_pdfform() {
-	return pdfform;
+	var lib_name = document.querySelector('input[name="pdflib"]:checked').value;
+	return pdfform((lib_name === 'minipdf') ? minipdf : minipdf_js);
 }
 
 // Example of listing all fields

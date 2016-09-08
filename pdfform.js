@@ -1,6 +1,7 @@
 'use strict';
 
-if (typeof require != 'undefined') {
+if (typeof window == 'undefined') {
+	// node.js, load compat libraries
 	var DOMParser = require('xmldom').DOMParser;
 	var XMLSerializer = require('xmldom').XMLSerializer;
 	var text_encoding = require('text-encoding');
@@ -8,13 +9,22 @@ if (typeof require != 'undefined') {
 	var TextDecoder = text_encoding.TextDecoder;
 
 	var pako = require('./libs/pako.min.js');
-	var minipdf = require('./minipdf.js');
-	// var minipdf = require('./pdf_js_compat.js');
 }
 
-var pdfform = (function() {
+function pdfform(minipdf_lib) {
 
-var assert = minipdf.assert;
+if (! minipdf_lib) {
+	// autodetct which library to use
+	if (typeof minipdf_js != 'undefined') {
+		minipdf_lib = minipdf_js;
+	} else if (typeof minipdf != 'undefined') {
+		minipdf_lib = minipdf;
+	} else {
+		minipdf_lib = require('./minipdf.js');
+	}
+}
+
+var assert = minipdf_lib.assert;
 
 function BytesIO() {
 	this.length = 0;
@@ -84,16 +94,16 @@ function hasSpecialChar(str) {
 
 function serialize(node, uncompressed) {
 	var i, ret;  // Wishing for let in modern browsers :(
-	if (minipdf.isRef(node)) {
+	if (minipdf_lib.isRef(node)) {
 		return node.num + ' ' + node.gen + ' R';
-	} else if (minipdf.isNum(node)) {
+	} else if (minipdf_lib.isNum(node)) {
 		return node;
-	} else if (minipdf.isBool(node)) {
+	} else if (minipdf_lib.isBool(node)) {
 		return node;
-	} else if (minipdf.isName(node)) {
+	} else if (minipdf_lib.isName(node)) {
 		assert(node.name);
 		return '/' + node.name;
-	} else if (minipdf.isString(node)) {
+	} else if (minipdf_lib.isString(node)) {
 		if (!hasSpecialChar(node)) {
 			return '(' + node + ')';
 		} else {
@@ -103,14 +113,14 @@ function serialize(node, uncompressed) {
 			}
 			return ret + '>';
 		}
-	} else if (minipdf.isArray(node)) {
+	} else if (minipdf_lib.isArray(node)) {
 		ret = ['['];
 		for (i = 0; i < node.length; i++) {
 			ret.push(serialize(node[i], uncompressed));
 		}
 		ret.push(']');
 		return ret.join(' ');
-	} else if (minipdf.isDict(node)) {
+	} else if (minipdf_lib.isDict(node)) {
 		var map = node.map;
 		ret = ['<<'];
 		for (var key in map) {
@@ -118,7 +128,7 @@ function serialize(node, uncompressed) {
 		}
 		ret.push('>>');
 		return ret.join('\n');
-	} else if (minipdf.isStream(node)) {
+	} else if (minipdf_lib.isStream(node)) {
 		ret = '';
 		delete node.dict.map.DecodeParms;
 		delete node.dict.map.Filter;
@@ -127,15 +137,15 @@ function serialize(node, uncompressed) {
 		assert(content, 'expecting byte content from ' + JSON.stringify(node));
 		var out;
 		if (uncompressed) {
-			out = minipdf.buf2str(content);
+			out = minipdf_lib.buf2str(content);
 			node.dict.map.Length = out.length;
 		} else {
-			out = minipdf.buf2str(pako.deflate(content));
+			out = minipdf_lib.buf2str(pako.deflate(content));
 			node.dict.map.Length = out.length;
-			node.dict.map.Filter = [new minipdf.Name('FlateDecode')];
+			node.dict.map.Filter = [new minipdf_lib.Name('FlateDecode')];
 		}
 
-		assert(minipdf.isDict(node.dict));
+		assert(minipdf_lib.isDict(node.dict));
 		ret += serialize(node.dict, uncompressed);
 		ret += '\nstream\n';
 		ret += out;
@@ -150,7 +160,7 @@ function serialize(node, uncompressed) {
 
 function PDFObjects(doc) {
 	this.entries = doc.get_xref_entries();
-	assert(minipdf.isArray(this.entries), 'xref entries should be an Array');
+	assert(minipdf_lib.isArray(this.entries), 'xref entries should be an Array');
 }
 PDFObjects.prototype = {
 add: function(obj, gen) {
@@ -185,7 +195,7 @@ write_object: function(out, e, uncompressed) {
 },
 write_xref_stream: function(out, prev, root_ref) {
 	var map = {
-		Type: new minipdf.Name('XRef'),
+		Type: new minipdf_lib.Name('XRef'),
 		Size: this.entries.length + 1, // + 1 for this object itself
 		Length: 6 * (this.entries.length + 1),
 		Root: root_ref,
@@ -211,7 +221,7 @@ write_xref_stream: function(out, prev, root_ref) {
 	});
 	var ui8ar = bio.get_uint8array();
 
-	var stream = minipdf.newStream(map, ui8ar);
+	var stream = minipdf_lib.newStream(map, ui8ar);
 	entry.obj = stream;
 	this.write_object(out, entry, true);
 },
@@ -221,7 +231,7 @@ function visit_acroform_fields(doc, callback) {
 	var to_visit = doc.acroForm.map.Fields.slice();
 	while (to_visit.length > 0) {
 		var n = to_visit.shift();
-		if (minipdf.isRef(n)) {
+		if (minipdf_lib.isRef(n)) {
 			var ref = n;
 			n = doc.fetch(n);
 			n._pdfform_ref = ref;
@@ -266,7 +276,7 @@ function modify_xfa(doc, objects, out, index, callback) {
 	assert(section_idx >= 0);
 	var section_ref = xfa[section_idx + 1];
 	var section_node = doc.fetch(section_ref);
-	assert(minipdf.isStream(section_node), 'XFA section node should be a stream');
+	assert(minipdf_lib.isStream(section_node), 'XFA section node should be a stream');
 	var bs = section_node.getBytes();
 	assert(bs);
 	var prev_str = (new TextDecoder('utf-8')).decode(bs);
@@ -274,15 +284,15 @@ function modify_xfa(doc, objects, out, index, callback) {
 	var str = callback(prev_str);
  
 	var out_bs = (new TextEncoder('utf-8').encode(str));
-	var out_node = minipdf.newStream(section_node.dict.map, out_bs);
-	assert(minipdf.isStream(out_node));
+	var out_node = minipdf_lib.newStream(section_node.dict.map, out_bs);
+	assert(minipdf_lib.isStream(out_node));
 
 	var e = objects.update(section_ref, out_node);
 	objects.write_object(out, e);
 }
 
 function transform(buf, fields) {
-	var doc = minipdf.parse(new Uint8Array(buf));
+	var doc = minipdf_lib.parse(new Uint8Array(buf));
 	var objects = new PDFObjects(doc);
 
 	var out = new BytesIO();
@@ -298,7 +308,7 @@ function transform(buf, fields) {
 		if (n.map.FT.name == 'Tx') {
 			n.map.V = '' + spec;
 		} else if (n.map.FT.name == 'Btn') {
-			n.map.AS = n.map.V = n.map.DV = spec ? new minipdf.Name('Yes') : new minipdf.Name('Off');
+			n.map.AS = n.map.V = n.map.DV = spec ? new minipdf_lib.Name('Yes') : new minipdf_lib.Name('Off');
 		} else {
 			throw new Error('Unsupported input type' + n.map.FT.name);
 		}
@@ -345,7 +355,7 @@ function transform(buf, fields) {
 
 	var startxref = out.position();
 	var root_id = doc.get_root_id();
-	var root_ref = new minipdf.Ref(root_id, 0);
+	var root_ref = new minipdf_lib.Ref(root_id, 0);
 	objects.write_xref_stream(out, doc.startXRef, root_ref);
 
 	out.write_str('startxref\n');
@@ -356,7 +366,7 @@ function transform(buf, fields) {
 }
 
 function list_fields(data) {
-	var doc = minipdf.parse(new Uint8Array(data));
+	var doc = minipdf_lib.parse(new Uint8Array(data));
 	var res = {};
 
 	visit_acroform_fields(doc, function(n) {
@@ -388,7 +398,10 @@ return {
 	transform: transform,
 	list_fields: list_fields,
 };
-})();
+}
+
+// Backwards compatibility only
+pdfform.transform = function(buf, fields) {return pdfform().transform(buf, fields);};
 
 if (typeof module != 'undefined') {
 	module.exports = pdfform;

@@ -14,11 +14,9 @@ function repeat(val, len) {
 }
 
 describe ('pdfform', function() {
-	it('example conversion', function() {
+	it('example conversion', function(done) {
 		var in_fn = __dirname + '/data/Spielberichtsbogen_2BL.pdf';
 		var out_fn = __dirname + '/data/out.pdf';
-
-		var in_buf = fs.readFileSync(in_fn);
 
 		var fields = {
 			'NumerischesFeld1': [
@@ -55,8 +53,14 @@ describe ('pdfform', function() {
 			'#field[91]': [true],
 			'Optionsfeldliste': [true, true, true],
 		};
-		var res = pdfform.transform(in_buf, fields);
-		fs.writeFileSync(out_fn, new Buffer(res), {encoding: 'binary'});
+
+		fs.readFile(in_fn, function(err, in_buf) {
+			if (err) {
+				return done(err);
+			}
+			var res = pdfform().transform(in_buf, fields);
+			fs.writeFile(out_fn, new Buffer(res), {encoding: 'binary'}, done);
+		});
 	});
 
 	it('list fields', function(done) {
@@ -65,7 +69,7 @@ describe ('pdfform', function() {
 			if (err) {
 				return done(err);
 			}
-			var fields = pdfform.list_fields(contents);
+			var fields = pdfform().list_fields(contents);
 
 			assert.deepStrictEqual(fields, {
 				'DruckenSchaltfläche1': ['boolean'],

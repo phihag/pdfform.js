@@ -19,6 +19,7 @@ global.navigator = {
 PDFJS.disableStream = true;
 PDFJS.disableRange = true;
 var pdf_js = require('./customlibs/pdf.worker.js');
+
 assert(!pdf_js.parse);
 pdf_js.assert = assert;
 pdf_js.parse = function(buf) {
