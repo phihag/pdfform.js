@@ -2,3 +2,4 @@ dist
 libs
 node_modules
 test/data/out.pdf
+npm-debug.log
