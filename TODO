@@ -1,6 +1,7 @@
-dist on GitHub
-test in browser
+add README (dist/installation)
+answer/close #1
 
-dependency in bup
-download file & serve in bup
-correct data in bup
+set up proper npm publishing
+automatic releasing
+find a way to get PDFDocument etc. references with native pdf.js
+	WorkerMessageHandler.createDocumentHandler.? -> localPDFManager -> PDFDocument

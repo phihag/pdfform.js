@@ -1,7 +1,7 @@
 {
 	"name": "pdfform.js",
 	"author": "Philipp Hagemeister <phihag@phihag.de>",
-	"description": "Fill out PDF forms",
+	"description": "Fill out PDF forms in pure JavaScript",
 	"repository": {
 		"type": "git",
 		"url": "git://github.com/phihag/pdfform.js.git"
@@ -19,5 +19,5 @@
 		"jshint": "*",
 		"eslint": "*"
 	},
-	"private": true
+	"version": "1.0.1"
 }

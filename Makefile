@@ -15,19 +15,18 @@ install-libs:
 force-install-libs:
 	mkdir -p libs
 	wget https://raw.githubusercontent.com/nodeca/pako/master/dist/pako.min.js -O libs/pako.min.js
+	#wget https://github.com/mozilla/pdf.js/releases/download/v1.4.20/pdfjs-1.4.20-dist.zip -O libs/pdfjs.dist.zip
+	#unzip -x -o -j -d libs/ libs/pdfjs.dist.zip build/pdf.js
 	touch libs/.completed
 
 deps: install-libs
 	(node --version && npm --version) >/dev/null 2>/dev/null || sudo apt-get install nodejs npm
 	npm install
 
-lint: jshint eslint
-
-jshint:
-	@jshint test/*.js *.js
+lint: eslint
 
 eslint:
-	@eslint test/*.js *.js
+	@node_modules/.bin/eslint test/*.js docs/*.js *.js
 
 clean_dist:
 	rm -rf -- dist
@@ -37,10 +36,11 @@ test:
 
 dist: clean_dist
 	mkdir -p dist
-	uglifyjs libs/pako.min.js minipdf.js pdfform.js -o dist/pdfform.dist.js
+	uglifyjs libs/pako.min.js minipdf.js pdfform.js -o dist/pdfform.minipdf.dist.js
+	uglifyjs libs/pako.min.js customlibs/pdf.worker.js minipdf_js.js pdfform.js -o dist/pdfform.pdf_js.dist.js
 
 clean: clean_dist
 	rm -rf -- node_modules
 	rm -rf -- libs
 
-.PHONY: default help deps lint jshint eslint clean dist clean_dist test install-libs force-install-libs
+.PHONY: default help deps lint eslint clean dist clean_dist test install-libs force-install-libs

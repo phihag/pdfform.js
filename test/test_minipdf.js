@@ -1,8 +1,7 @@
+'use strict';
+
 var assert = require('assert');
 var fs = require('fs');
-
-(function() {
-'use strict';
 
 var minipdf = require('../minipdf');
 
@@ -10,8 +9,26 @@ function assert_parse(s, expected) {
 	var buf = str2uint8ar(s + '   more');
 	var r = new minipdf.PDFReader(buf);
 	var got = r.parse();
-	assert.deepEqual(got, expected);
 	assert.deepStrictEqual(got, expected);
+	assert.strictEqual(r.pos, s.length);
+}
+
+// Due to a bug in node.js, Uint8Array objects with equal contents are not marked as equal
+// See https://github.com/nodejs/node/issues/8001 for more details
+function assert_ui8r_eq(x, y) {
+	assert.strictEqual(x.length, y.length);
+	for (var i = 0;i < x.length;i++) {
+		assert.strictEqual(x[i], y[i]);
+	}
+}
+
+function assert_stream_parse(s, expected) {
+	var buf = str2uint8ar(s + '   more');
+	var r = new minipdf.PDFReader(buf);
+	var got = r.parse();
+	assert.deepStrictEqual(got.map, expected.map);
+	assert.deepStrictEqual(got.dict, expected.dict);
+	assert_ui8r_eq(got.content, expected.content);
 	assert.strictEqual(r.pos, s.length);
 }
 
@@ -134,13 +151,13 @@ describe('minipdf parsing', function() {
 	});
 
 	it('simple stream parsing', function() {
-		assert_parse(
+		assert_stream_parse(
 			'<< /Length 12>>stream123456789abcendstream',
 			new minipdf.Stream({Length: 12}, str2uint8ar('123456789abc')));
-		assert_parse(
+		assert_stream_parse(
 			'<< /Length 12>>\nstream\r\n123456789abc\n endstream',
 			new minipdf.Stream({Length: 12}, str2uint8ar('123456789abc')));
-		assert_parse(
+		assert_stream_parse(
 			'<< /Length 12>> stream\n123456789abc\n endstream',
 			new minipdf.Stream({Length: 12}, str2uint8ar('123456789abc')));
 	});
@@ -186,21 +203,10 @@ describe('minipdf parsing', function() {
 	});
 
 	it('a real file', function() {
-		var buf;
-		try {
-			buf = fs.readFileSync(__dirname + '/../Spielberichtsbogen_2BL.pdf');
-		} catch(e) {
-			if (e.code == 'ENOENT') {
-				return;
-			} else {
-				throw e;
-			}
-		}
+		var buf = fs.readFileSync(__dirname + '/data/Spielberichtsbogen_2BL.pdf');
 		var doc = new minipdf.PDFDocument(buf);
 		assert.deepStrictEqual(doc.root.map.Type, new minipdf.Name('Catalog'));
 		assert(doc.acroForm);
 		assert(doc.acroForm.map.XFA);
 	});
 });
-
-})();

@@ -1,5 +1,6 @@
-var pdf_js = (function() {
 'use strict';
+
+var minipdf_js = (function() {
 
 function assert(x, msg) {
 	if (x) {
@@ -11,13 +12,19 @@ function assert(x, msg) {
 	throw new Error(msg);
 }
 
-global.PDFJS = {};
-global.navigator = {
-	userAgent: 'pdfform.js',
-};
-PDFJS.disableStream = true;
-PDFJS.disableRange = true;
-var pdf_js = require('./customlibs/pdf.worker.js');
+var pdf_js;
+if (typeof window != 'undefined') {
+	pdf_js = PDFJS.minipdf_exports;
+} else {
+	global.PDFJS = {};
+	global.navigator = {
+		userAgent: 'pdfform.js',
+	};
+	PDFJS.disableStream = true;
+	PDFJS.disableRange = true;
+	pdf_js = require('./customlibs/pdf.worker.js');
+}
+
 assert(!pdf_js.parse);
 pdf_js.assert = assert;
 pdf_js.parse = function(buf) {
@@ -70,5 +77,5 @@ return pdf_js;
 })();
 
 if (typeof module != 'undefined') {
-	module.exports = pdf_js;
+	module.exports = minipdf_js;
 }
