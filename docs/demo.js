@@ -152,4 +152,6 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 		});
 	}
+
+	document.querySelector('.loading').setAttribute('style', 'display: none');
 });
