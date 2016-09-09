@@ -37,6 +37,7 @@ test:
 dist: clean_dist
 	mkdir -p dist
 	uglifyjs libs/pako.min.js minipdf.js pdfform.js -o dist/pdfform.minipdf.dist.js
+	uglifyjs libs/pako.min.js customlibs/pdf.worker.js minipdf_js.js pdfform.js -o dist/pdfform.pdf_js.dist.js
 
 clean: clean_dist
 	rm -rf -- node_modules
