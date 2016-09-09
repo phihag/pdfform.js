@@ -12,13 +12,18 @@ function assert(x, msg) {
 	throw new Error(msg);
 }
 
-global.PDFJS = {};
-global.navigator = {
-	userAgent: 'pdfform.js',
-};
-PDFJS.disableStream = true;
-PDFJS.disableRange = true;
-var pdf_js = require('./customlibs/pdf.worker.js');
+var pdf_js;
+if (typeof window != 'undefined') {
+	pdf_js = PDFJS.minipdf_exports;
+} else {
+	global.PDFJS = {};
+	global.navigator = {
+		userAgent: 'pdfform.js',
+	};
+	PDFJS.disableStream = true;
+	PDFJS.disableRange = true;
+	pdf_js = require('./customlibs/pdf.worker.js');
+}
 
 assert(!pdf_js.parse);
 pdf_js.assert = assert;

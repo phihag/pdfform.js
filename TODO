@@ -10,3 +10,6 @@ do away with customlibs!
 dist with and without PDF.js and with both
 add README (dist/installation)
 answer/close #1
+
+find a way to get PDFDocument etc. references with native pdf.js?
+	WorkerMessageHandler.createDocumentHandler.? -> localPDFManager -> PDFDocument

@@ -39984,23 +39984,27 @@ var MurmurHash3_64 = (function MurmurHash3_64Closure (seed) {
   return MurmurHash3_64;
 })();
 
+var mod_exports = {
+  PDFDocument: PDFDocument,
+  Ref: Ref,
+  Name: Name,
+  Dict: Dict,
+  RefSet: RefSet,
+  isRef: isRef,
+  isBool: isBool,
+  isNum: isNum,
+  isName: isName,
+  isString: isString,
+  isArray: isArray,
+  isDict: isDict,
+  isStream: isStream,
+  Stream: Stream,
+};
+
 if (typeof module != 'undefined') {
-  module.exports = {
-    PDFDocument: PDFDocument,
-    Ref: Ref,
-    Name: Name,
-    Dict: Dict,
-    RefSet: RefSet,
-    isRef: isRef,
-    isBool: isBool,
-    isNum: isNum,
-    isName: isName,
-    isString: isString,
-    isArray: isArray,
-    isDict: isDict,
-    isStream: isStream,
-    Stream: Stream,
-  };
+  module.exports = mod_exports;
+} else {
+  PDFJS.minipdf_exports = mod_exports;
 }
 
 }).call((typeof window === 'undefined') ? this : window);
