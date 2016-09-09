@@ -142,4 +142,14 @@ document.addEventListener('DOMContentLoaded', function() {
 		cur_file.setAttribute('style', 'display: none');
 		url_form.setAttribute('style', 'display: block');
 	});
+
+	var pdflib_radios = document.querySelectorAll('input[name="pdflib"]');
+	for (var i = 0;i < pdflib_radios.length;i++) {
+		var r = pdflib_radios[i];
+		r.addEventListener('change', function() {
+			if (current_buffer) {
+				list(current_buffer);
+			}
+		});
+	}
 });

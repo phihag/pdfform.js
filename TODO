@@ -1,11 +1,3 @@
-html example
-	include disted
-	download + list
-	actually generate
-	nicer flow (with disabled, hide input)
-	with and without PDF.js (actually evaluate radio button position)
-	reparse on changing pdf lib
-	handle errors (i.e. feeding .png)
 do away with customlibs!
 dist with and without PDF.js and with both
 add README (dist/installation)
