@@ -224,6 +224,23 @@ write_xref_stream: function(out, prev, root_ref) {
 	var stream = minipdf_lib.newStream(map, ui8ar);
 	entry.obj = stream;
 	this.write_object(out, entry, true);
+}, write_xref_table(out, prev, root_ref) {
+	var size = 1 + this.entries.length;
+	out.write_str('xref\n');
+	out.write_str('0 ' + size + '\n');
+	out.write_str('0000000000 65535 f\r\n');
+	this.entries.forEach(function(e) {
+		assert(e.offset !== undefined, 'entry should have an offset');
+		out.write_str(pad(e.offset, 10) + ' ' + pad(e.gen, 5) + ' n\r\n');
+	});
+
+	// write trailer
+	out.write_str('trailer\n');
+	var trailer = new minipdf_lib.Dict({
+		Size: size,
+		Root: root_ref,
+	});
+	out.write_str(serialize(trailer, true));
 },
 };
 
@@ -266,7 +283,7 @@ function pdf_decode_str(str) {
 	if (! str.startsWith('\u00FE\u00FF')) {
 		return str;
 	}
-    var res = '';
+	var res = '';
 	for (var i = 2; i < str.length; i += 2) {
 		res += String.fromCharCode(str.charCodeAt(i) << 8 | str.charCodeAt(i + 1));
 	}
@@ -391,7 +408,11 @@ function transform(buf, fields) {
 	});
 
 	var startxref = out.position();
-	objects.write_xref_stream(out, doc.startXRef, root_ref);
+	if (doc.xref_type === 'table') {
+		objects.write_xref_table(out, doc.startXRef, root_ref);
+	} else {
+		objects.write_xref_stream(out, doc.startXRef, root_ref);
+	}
 
 	out.write_str('startxref\n');
 	out.write_str(startxref + '\n');

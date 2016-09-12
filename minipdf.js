@@ -150,6 +150,7 @@ var PDFDocument = function(buf) {
 	assert(isRef(this.meta.Root), 'meta.root should be Ref');
 
 	this.root = this.fetch(this.meta.Root);
+	this.xref_type = this.reader.xref_type;
 
 	var af_node = this.get_acroform_ref();
 	if (isRef(af_node)) {
@@ -453,8 +454,10 @@ PDFReader.prototype = {
 	parse_xref: function() {
 		if (startswith(this.buf, this.pos, 'xref')) {
 			// Textual xref table;
+			this.xref_type = 'table';
 			return this.parse_xref_table();
 		}
+		this.xref_type = 'stream';
 		var obj = this.parse_object().obj;
 		var xref = [];
 

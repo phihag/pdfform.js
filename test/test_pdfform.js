@@ -370,7 +370,7 @@ describe ('pdfform', function() {
 			});
 
 			var res = pdfform().transform(contents, {
-				'form1[0].BodyPage1[0].DropDownList1': 'Middlesex',
+				'form1[0].BodyPage1[0].DropDownList1': ['Middlesex'],
 			});
 			fs.writeFile(out_fn, new Buffer(res), {encoding: 'binary'}, done);
 		});
