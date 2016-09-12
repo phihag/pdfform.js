@@ -48,7 +48,7 @@ function list(buf) {
 function fill(buf) {
 	var list_form = document.querySelector('.list_form');
 	var fields = {};
-	list_form.querySelectorAll('input').forEach(function(input) {
+	list_form.querySelectorAll('input,select').forEach(function(input) {
 		var key = input.getAttribute('data-key');
 		if (!fields[key]) {
 			fields[key] = [];
