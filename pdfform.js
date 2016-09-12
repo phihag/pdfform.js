@@ -224,7 +224,8 @@ write_xref_stream: function(out, prev, root_ref) {
 	var stream = minipdf_lib.newStream(map, ui8ar);
 	entry.obj = stream;
 	this.write_object(out, entry, true);
-}, write_xref_table(out, prev, root_ref) {
+},
+write_xref_table: function(out, prev, root_ref) {
 	var size = 1 + this.entries.length;
 	out.write_str('xref\n');
 	out.write_str('0 ' + size + '\n');
