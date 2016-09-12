@@ -129,248 +129,249 @@ describe ('pdfform', function() {
 			var fields = pdfform().list_fields(contents, true);
 
 			assert.deepStrictEqual(fields, {
-				"form1[0].BodyPage1[0].DropDownList1": [
-						{
-								"type": "select",
-								"options": [
-										"  ",
-										"Barnstable",
-										"Berkshire",
-										"Bristol",
-										"Dukes",
-										"Essex",
-										"Franklin",
-										"Hampden",
-										"Hampshire",
-										"Middlesex",
-										"Nantucket",
-										"Norfolk",
-										"Plymouth",
-										"Suffolk",
-										"Worcester"
-								]
-						}
+				'form1[0].BodyPage1[0].DropDownList1': [
+					{
+						'type': 'select',
+						'options': [
+							'  ',
+							'Barnstable',
+							'Berkshire',
+							'Bristol',
+							'Dukes',
+							'Essex',
+							'Franklin',
+							'Hampden',
+							'Hampshire',
+							'Middlesex',
+							'Nantucket',
+							'Norfolk',
+							'Plymouth',
+							'Suffolk',
+							'Worcester',
+						],
+					},
 				],
-				"form1[0].BodyPage1[0].TextField1": [
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						}
+				'form1[0].BodyPage1[0].TextField1': [
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
 				],
-				"form1[0].BodyPage1[0].TextField2": [
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						}
+				'form1[0].BodyPage1[0].TextField2': [
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
 				],
-				"form1[0].BodyPage1[0].RadioButtonList": [
-						{
-								"type": "boolean"
-						}
+				'form1[0].BodyPage1[0].RadioButtonList': [
+					{
+						'type': 'boolean',
+					},
 				],
-				"form1[0].BodyPage1[0].TextField4": [
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						}
+				'form1[0].BodyPage1[0].TextField4': [
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
 				],
-				"form1[0].BodyPage1[0].CheckBox1": [
-						{
-								"type": "boolean"
-						},
-						{
-								"type": "boolean"
-						},
-						{
-								"type": "boolean"
-						}
+				'form1[0].BodyPage1[0].CheckBox1': [
+					{
+						'type': 'boolean',
+					},
+					{
+						'type': 'boolean',
+					},
+					{
+						'type': 'boolean',
+					},
 				],
-				"form1[0].BodyPage1[0].Sub2[0].Multi2": [
-						{
-								"type": "string"
-						}
+				'form1[0].BodyPage1[0].Sub2[0].Multi2': [
+					{
+						'type': 'string',
+					},
 				],
-				"form1[0].BodyPage1[0].Sub1[0].Multi1": [
-						{
-								"type": "string"
-						}
+				'form1[0].BodyPage1[0].Sub1[0].Multi1': [
+					{
+						'type': 'string',
+					},
 				],
-				"form1[0].#subform[1].DropDownList1": [
-						{
-								"type": "select",
-								"options": [
-										"  ",
-										"Barnstable",
-										"Berkshire",
-										"Bristol",
-										"Dukes",
-										"Essex",
-										"Franklin",
-										"Hampden",
-										"Hampshire",
-										"Middlesex",
-										"Nantucket",
-										"Norfolk",
-										"Plymouth",
-										"Suffolk",
-										"Worcester"
-								]
-						}
+				'form1[0].#subform[1].DropDownList1': [
+					{
+						'type': 'select',
+						'options': [
+							'  ',
+							'Barnstable',
+							'Berkshire',
+							'Bristol',
+							'Dukes',
+							'Essex',
+							'Franklin',
+							'Hampden',
+							'Hampshire',
+							'Middlesex',
+							'Nantucket',
+							'Norfolk',
+							'Plymouth',
+							'Suffolk',
+							'Worcester',
+						],
+					},
 				],
-				"form1[0].#subform[1].TextField1": [
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						}
+				'form1[0].#subform[1].TextField1': [
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
 				],
-				"form1[0].#subform[1].TextField2": [
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						}
+				'form1[0].#subform[1].TextField2': [
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
 				],
-				"form1[0].#subform[1].TextField4": [
-						{
-								"type": "string"
-						}
+				'form1[0].#subform[1].TextField4': [
+					{
+						'type': 'string',
+					},
 				],
-				"form1[0].#subform[1].CheckBox1": [
-						{
-								"type": "boolean"
-						},
-						{
-								"type": "boolean"
-						},
-						{
-								"type": "boolean"
-						},
-						{
-								"type": "boolean"
-						},
-						{
-								"type": "boolean"
-						}
+				'form1[0].#subform[1].CheckBox1': [
+					{
+						'type': 'boolean',
+					},
+					{
+						'type': 'boolean',
+					},
+					{
+						'type': 'boolean',
+					},
+					{
+						'type': 'boolean',
+					},
+					{
+						'type': 'boolean',
+					},
 				],
-				"form1[0].#subform[1].RadioButtonList": [
-						{
-								"type": "boolean"
-						},
-						{
-								"type": "boolean"
-						},
-						{
-								"type": "boolean"
-						},
-						{
-								"type": "boolean"
-						}
+				'form1[0].#subform[1].RadioButtonList': [
+					{
+						'type': 'boolean',
+					},
+					{
+						'type': 'boolean',
+					},
+					{
+						'type': 'boolean',
+					},
+					{
+						'type': 'boolean',
+					},
 				],
-				"form1[0].#subform[1].DateTimeField1": [
-						{
-								"type": "string"
-						}
+				'form1[0].#subform[1].DateTimeField1': [
+					{
+						'type': 'string',
+					},
 				],
-				"form1[0].#subform[1].TextField5": [
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						},
-						{
-								"type": "string"
-						}
+				'form1[0].#subform[1].TextField5': [
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
+					{
+						'type': 'string',
+					},
 				],
-				"form1[0].#subform[1].TextField7": [
-						{
-								"type": "string"
-						}
+				'form1[0].#subform[1].TextField7': [
+					{
+						'type': 'string',
+					},
 				],
-				"form1[0].#subform[1].TextField6": [
-						{
-								"type": "string"
-						}
+				'form1[0].#subform[1].TextField6': [
+					{
+						'type': 'string',
+					},
 				],
 			});
 
 			var res = pdfform().transform(contents, {
 				'form1[0].BodyPage1[0].DropDownList1': ['Middlesex'],
+				'form1[0].BodyPage1[0].TextField1': ['foo', 'bar'],
 			});
 			fs.writeFile(out_fn, new Buffer(res), {encoding: 'binary'}, done);
 		});
