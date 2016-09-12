@@ -272,6 +272,9 @@ function acroform_match_spec(n, fields) {
 
 function modify_xfa(doc, objects, out, index, callback) {
 	var xfa = doc.acroForm.map.XFA;
+	if (! xfa) {
+		return; // acroForm-only
+	}
 	var section_idx = xfa.indexOf(index);
 	assert(section_idx >= 0);
 	var section_ref = xfa[section_idx + 1];
@@ -294,6 +297,8 @@ function modify_xfa(doc, objects, out, index, callback) {
 function transform(buf, fields) {
 	var doc = minipdf_lib.parse(new Uint8Array(buf));
 	var objects = new PDFObjects(doc);
+	var root_id = doc.get_root_id();
+	var root_ref = new minipdf_lib.Ref(root_id, 0);
 
 	var out = new BytesIO();
 	out.write_buf(new Uint8Array(buf));
@@ -318,10 +323,18 @@ function transform(buf, fields) {
 		objects.write_object(out, e);
 	});
 	// Set NeedAppearances in AcroForm dict
-	var acroform_ref = doc.get_acroform_ref();
 	doc.acroForm.map.NeedAppearances = true;
-	var e = objects.update(acroform_ref, doc.acroForm);
-	objects.write_object(out, e);
+	var acroform_ref = doc.get_acroform_ref();
+	if (minipdf_lib.isRef(acroform_ref)) {
+		// Replace just the AcroForm object
+		var e = objects.update(acroform_ref, doc.acroForm);
+		objects.write_object(out, e);
+	} else {
+		// Replace the entire root object
+		doc.root.map.AcroForm = doc.acroForm;
+		var root = objects.update(root_ref, doc.root);
+		objects.write_object(out, root);
+	}
 
 	// Change XFA
 	modify_xfa(doc, objects, out, 'datasets', function(str) {
@@ -354,8 +367,6 @@ function transform(buf, fields) {
 	});
 
 	var startxref = out.position();
-	var root_id = doc.get_root_id();
-	var root_ref = new minipdf_lib.Ref(root_id, 0);
 	objects.write_xref_stream(out, doc.startXRef, root_ref);
 
 	out.write_str('startxref\n');
@@ -371,8 +382,13 @@ function list_fields(data) {
 
 	visit_acroform_fields(doc, function(n) {
 		var raw_name = pdf_decode_str(n.map.T);
+		var name = raw_name;
+		var index = 0;
 		var m = /^(.+?)\[([0-9]+)\]$/.exec(raw_name);
-		if (!m) return;
+		if (m) {
+			name = m[1];
+			index = parseInt(m[2], 10);
+		}
 
 		var itype;
 		if (n.map.FT.name == 'Tx') {
@@ -383,8 +399,6 @@ function list_fields(data) {
 			throw new Error('Unsupported input type' + n.map.FT.name);
 		}
 
-		var name = m[1];
-		var index = parseInt(m[2], 10);
 		if (!res[name]) {
 			res[name] = [];
 		}

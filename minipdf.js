@@ -150,7 +150,13 @@ var PDFDocument = function(buf) {
 	assert(this.meta.Root instanceof Ref);
 
 	this.root = this.fetch(this.meta.Root);
-	this.acroForm = this.fetch(this.root.map.AcroForm);
+
+	var af_node = this.get_acroform_ref();
+	if (isRef(af_node)) {
+		this.acroForm = this.fetch(af_node);
+	} else {
+		this.acroForm = af_node;
+	}
 };
 PDFDocument.prototype.get_root_id = function() {
 	return this.meta.Root.num;

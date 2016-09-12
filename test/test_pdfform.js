@@ -97,4 +97,26 @@ describe ('pdfform', function() {
 			done();
 		});
 	});
+
+	it('flooie-example-form', function(done) {
+		var in_fn = __dirname + '/data/New Form 9_11_16.pdf';
+		var out_fn = __dirname + '/data/out-flooie.pdf';
+		fs.readFile(in_fn, function(err, contents) {
+			if (err) {
+				return done(err);
+			}
+			var fields = pdfform().list_fields(contents);
+
+			assert.deepStrictEqual(fields, {
+				'Hello World_4SEXUsSJ-VWn6n1APNranw': ['string'],
+				'fc-int01-generateAppearances': ['string'],
+			});
+
+			var res = pdfform().transform(contents, {
+				'Hello World_4SEXUsSJ-VWn6n1APNranw': ['hi!'],
+			});
+			fs.writeFile(out_fn, new Buffer(res), {encoding: 'binary'}, done);
+		});
+	});
+
 });
