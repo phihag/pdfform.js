@@ -24,14 +24,20 @@ function list(buf) {
 		row.appendChild(document.createTextNode(field_key));
 		list_form.appendChild(row);
 		field_specs[field_key].forEach(function(spec, i) {
-			var input = document.createElement('input');
+			var input = document.createElement((spec.type === 'select') ? 'select' : 'input');
 			input.setAttribute('data-idx', i);
 			input.setAttribute('data-key', field_key);
-			if (spec === 'boolean') {
+			if (spec.type === 'boolean') {
 				input.setAttribute('type', 'checkbox');
-			}
-			if (spec === 'string') {
+			} else if (spec.type === 'string') {
 				input.setAttribute('value', cnt++);
+			} else if ((spec.type === 'select') && spec.options) {
+				spec.options.forEach(function(ostr) {
+					var option_el = document.createElement('option');
+					option_el.appendChild(document.createTextNode(ostr));
+					option_el.setAttribute('value', ostr);
+					input.appendChild(option_el);
+				});
 			}
 			row.appendChild(input);
 		});
@@ -42,7 +48,7 @@ function list(buf) {
 function fill(buf) {
 	var list_form = document.querySelector('.list_form');
 	var fields = {};
-	list_form.querySelectorAll('input').forEach(function(input) {
+	list_form.querySelectorAll('input,select').forEach(function(input) {
 		var key = input.getAttribute('data-key');
 		if (!fields[key]) {
 			fields[key] = [];

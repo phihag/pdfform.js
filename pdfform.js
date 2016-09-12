@@ -224,24 +224,58 @@ write_xref_stream: function(out, prev, root_ref) {
 	var stream = minipdf_lib.newStream(map, ui8ar);
 	entry.obj = stream;
 	this.write_object(out, entry, true);
+}, write_xref_table(out, prev, root_ref) {
+	var size = 1 + this.entries.length;
+	out.write_str('xref\n');
+	out.write_str('0 ' + size + '\n');
+	out.write_str('0000000000 65535 f\r\n');
+	this.entries.forEach(function(e) {
+		assert(e.offset !== undefined, 'entry should have an offset');
+		out.write_str(pad(e.offset, 10) + ' ' + pad(e.gen, 5) + ' n\r\n');
+	});
+
+	// write trailer
+	out.write_str('trailer\n');
+	var trailer = new minipdf_lib.Dict({
+		Size: size,
+		Root: root_ref,
+	});
+	out.write_str(serialize(trailer, true));
 },
 };
 
 function visit_acroform_fields(doc, callback) {
-	var to_visit = doc.acroForm.map.Fields.slice();
-	while (to_visit.length > 0) {
-		var n = to_visit.shift();
-		if (minipdf_lib.isRef(n)) {
-			var ref = n;
-			n = doc.fetch(n);
-			n._pdfform_ref = ref;
-		}
+	if (doc.acroForm) {
+		var to_visit = doc.acroForm.map.Fields.slice();
+		while (to_visit.length > 0) {
+			var n = to_visit.shift();
+			if (minipdf_lib.isRef(n)) {
+				var ref = n;
+				n = doc.fetch(n);
+				n._pdfform_ref = ref;
+			}
 
-		if (n.map && n.map.Kids) {
-			to_visit.push.apply(to_visit, n.map.Kids);
-		} else if (n.map && n.map.Type && n.map.Type.name == 'Annot') {
-			callback(n);
+			if (n.map && n.map.Kids) {
+				to_visit.push.apply(to_visit, n.map.Kids);
+			} else if (n.map && n.map.Type && n.map.Type.name == 'Annot') {
+				callback(n);
+			}
 		}
+	} else {
+		// No AcroForm? Look in the pages themselves
+		var pages = doc.fetch(doc.root.map.Pages);
+		pages.map.Kids.forEach(function(page_ref) {
+			var page = doc.fetch(page_ref);
+			var annots_ref = page.map.Annots;
+			var annots = doc.fetch(annots_ref);
+			annots.forEach(function(annot_ref) {
+				var n = doc.fetch(annot_ref);
+				n._pdfform_ref = annot_ref;
+				if (n.map && n.map.Type && n.map.Type.name == 'Annot') {
+					callback(n);
+				}
+			});
+		});
 	}
 }
 
@@ -249,7 +283,7 @@ function pdf_decode_str(str) {
 	if (! str.startsWith('\u00FE\u00FF')) {
 		return str;
 	}
-    var res = '';
+	var res = '';
 	for (var i = 2; i < str.length; i += 2) {
 		res += String.fromCharCode(str.charCodeAt(i) << 8 | str.charCodeAt(i + 1));
 	}
@@ -271,7 +305,13 @@ function acroform_match_spec(n, fields) {
 
 
 function modify_xfa(doc, objects, out, index, callback) {
+	if (!doc.acroForm) {
+		return;
+	}
 	var xfa = doc.acroForm.map.XFA;
+	if (! xfa) {
+		return; // acroForm-only
+	}
 	var section_idx = xfa.indexOf(index);
 	assert(section_idx >= 0);
 	var section_ref = xfa[section_idx + 1];
@@ -294,6 +334,8 @@ function modify_xfa(doc, objects, out, index, callback) {
 function transform(buf, fields) {
 	var doc = minipdf_lib.parse(new Uint8Array(buf));
 	var objects = new PDFObjects(doc);
+	var root_id = doc.get_root_id();
+	var root_ref = new minipdf_lib.Ref(root_id, 0);
 
 	var out = new BytesIO();
 	out.write_buf(new Uint8Array(buf));
@@ -305,23 +347,35 @@ function transform(buf, fields) {
 			return;
 		}
 
-		if (n.map.FT.name == 'Tx') {
+		var ft_name = n.map.FT.name;
+		if (ft_name == 'Tx') {
 			n.map.V = '' + spec;
-		} else if (n.map.FT.name == 'Btn') {
+		} else if (ft_name == 'Btn') {
 			n.map.AS = n.map.V = n.map.DV = spec ? new minipdf_lib.Name('Yes') : new minipdf_lib.Name('Off');
+		} else if (ft_name == 'Ch') {
+			n.map.V =  '' + spec;
 		} else {
-			throw new Error('Unsupported input type' + n.map.FT.name);
+			throw new Error('Unsupported input type ' + n.map.FT.name);
 		}
 
 		var ref = n._pdfform_ref;
 		var e = objects.update(ref, n);
 		objects.write_object(out, e);
 	});
-	// Set NeedAppearances in AcroForm dict
 	var acroform_ref = doc.get_acroform_ref();
-	doc.acroForm.map.NeedAppearances = true;
-	var e = objects.update(acroform_ref, doc.acroForm);
-	objects.write_object(out, e);
+	if (acroform_ref) { // Acroform present
+		doc.acroForm.map.NeedAppearances = true;
+		if (minipdf_lib.isRef(acroform_ref)) {
+			// Replace just the AcroForm object
+			var e = objects.update(acroform_ref, doc.acroForm);
+			objects.write_object(out, e);
+		} else {
+			// Replace the entire root object
+			doc.root.map.AcroForm = doc.acroForm;
+			var root = objects.update(root_ref, doc.root);
+			objects.write_object(out, root);
+		}
+	}
 
 	// Change XFA
 	modify_xfa(doc, objects, out, 'datasets', function(str) {
@@ -354,9 +408,11 @@ function transform(buf, fields) {
 	});
 
 	var startxref = out.position();
-	var root_id = doc.get_root_id();
-	var root_ref = new minipdf_lib.Ref(root_id, 0);
-	objects.write_xref_stream(out, doc.startXRef, root_ref);
+	if (doc.xref_type === 'table') {
+		objects.write_xref_table(out, doc.startXRef, root_ref);
+	} else {
+		objects.write_xref_stream(out, doc.startXRef, root_ref);
+	}
 
 	out.write_str('startxref\n');
 	out.write_str(startxref + '\n');
@@ -371,24 +427,33 @@ function list_fields(data) {
 
 	visit_acroform_fields(doc, function(n) {
 		var raw_name = pdf_decode_str(n.map.T);
+		var name = raw_name;
+		var index = 0;
 		var m = /^(.+?)\[([0-9]+)\]$/.exec(raw_name);
-		if (!m) return;
-
-		var itype;
-		if (n.map.FT.name == 'Tx') {
-			itype = 'string';
-		} else if (n.map.FT.name == 'Btn') {
-			itype = 'boolean';
-		} else {
-			throw new Error('Unsupported input type' + n.map.FT.name);
+		if (m) {
+			name = m[1];
+			index = parseInt(m[2], 10);
 		}
 
-		var name = m[1];
-		var index = parseInt(m[2], 10);
+		var spec;
+		var ft_name = n.map.FT.name;
+		if (ft_name === 'Tx') {
+			spec = {type: 'string'};
+		} else if (ft_name === 'Btn') {
+			spec = {type: 'boolean'};
+		} else if (ft_name === 'Ch') {
+			spec = {
+				type: 'select',
+				options: n.map.Opt.slice(),
+			};
+		} else {
+			throw new Error('Unsupported input type' + ft_name);
+		}
+
 		if (!res[name]) {
 			res[name] = [];
 		}
-		res[name][index] = itype;
+		res[name][index] = spec;
 	});
 
 	return res;
