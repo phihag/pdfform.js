@@ -146,8 +146,8 @@ var PDFDocument = function(buf) {
 	this.xref = xref_res.xref;
 	assert(isArray(this.xref));
 	this.meta = xref_res.meta;
-	assert(this.meta.Root);
-	assert(this.meta.Root instanceof Ref);
+	assert(this.meta.Root, 'meta.Root missing');
+	assert(isRef(this.meta.Root), 'meta.root should be Ref');
 
 	this.root = this.fetch(this.meta.Root);
 
@@ -312,6 +312,23 @@ PDFReader.prototype = {
 			return String.fromCharCode(parseInt(arguments[1], 16));
 		});
 	},
+	parse_num: function() {
+		var res = 0;
+		var first_pos = this.pos;
+		while (this.pos < this.buf.length) {
+			var by = this.buf[this.pos];
+			if ((48 <= by) && (by <= 57)) {
+				res = res * 10 + by - 48;
+			} else {
+				break;
+			}
+			this.pos++;
+		}
+		if (first_pos === this.pos) {
+			throw new Error('Not an ASCII number byte: ' + this.buf[this.pos]);
+		}
+		return res;
+	},
 	parse_name: function() {
 		var start_pos = this.pos;
 		var DELIM_CHARS = [0, 9, 13, 10, 32, 40, 41, 60, 62, 91, 93, 123, 125, 47, 37];
@@ -434,6 +451,10 @@ PDFReader.prototype = {
 		throw new Error('Unable to parse ' + buf2str(this.buf, this.pos, this.pos + 40));
 	},
 	parse_xref: function() {
+		if (startswith(this.buf, this.pos, 'xref')) {
+			// Textual xref table;
+			return this.parse_xref_table();
+		}
 		var obj = this.parse_object().obj;
 		var xref = [];
 
@@ -514,6 +535,44 @@ PDFReader.prototype = {
 			obj: obj,
 			num: real_num,
 			gen: real_gen,
+		};
+	},
+	parse_xref_table: function() {
+		this.skip_start('xref');
+		this.skip_space();
+		var start_num = this.parse_num();
+		var xref = [];
+		for (var j = 0;j < start_num;j++) {
+			xref.push(undefined);
+		}
+		this.skip_space();
+		var count = this.parse_num();
+		for (var i = 0;i < count;i++) {
+			this.skip_space();
+			var offset = this.parse_num();
+			this.skip_space();
+			var gen = this.parse_num();
+			this.skip_space();
+			var usage = this.buf[this.pos];
+			if ((usage != 102) && (usage != 110)) { // n and f
+				throw new Error('Invalid usage character ' + usage);
+			}
+			this.pos++;
+			xref.push({
+				offset: offset,
+				gen: gen,
+			});
+		}
+
+		this.skip_space();
+		if (!this.skip_start('trailer')) {
+			throw new Error('Missing trailer');
+		}
+		var meta = this.parse();
+
+		return {
+			xref: xref,
+			meta: meta.map,
 		};
 	},
 	at_eof: function() {

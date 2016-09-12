@@ -72,27 +72,27 @@ describe ('pdfform', function() {
 			var fields = pdfform().list_fields(contents);
 
 			assert.deepStrictEqual(fields, {
-				'DruckenSchaltfläche1': ['boolean'],
-				'ZurücksetzenSchaltfläche1': ['boolean'],
-				'EMailSendenSchaltfläche1': ['boolean'],
-				'Kontrollkästchen1': ['boolean'],
-				'NumerischesFeld1': repeat('string', 8),
-				'NumerischesFeld2': repeat('string', 54),
-				'Optionsfeldliste': repeat('boolean', 3),
-				'Textfeld1': ['string'],
-				'Textfeld2': ['string'],
-				'Textfeld3': ['string'],
-				'Textfeld4': ['string'],
-				'Textfeld5': ['string'],
-				'Textfeld6': ['string'],
-				'Textfeld7': ['string'],
-				'Textfeld8': ['string'],
-				'Textfeld9': repeat('string', 16),
-				'Textfeld10': repeat('string', 24),
-				'Textfeld11': ['string'],
-				'Textfeld12': ['string'],
-				'Textfeld13': ['string'],
-				'Textfeld14': repeat('string', 5),
+				'DruckenSchaltfläche1': [{type: 'boolean'}],
+				'ZurücksetzenSchaltfläche1': [{type: 'boolean'}],
+				'EMailSendenSchaltfläche1': [{type: 'boolean'}],
+				'Kontrollkästchen1': [{type: 'boolean'}],
+				'NumerischesFeld1': repeat({type: 'string'}, 8),
+				'NumerischesFeld2': repeat({type: 'string'}, 54),
+				'Optionsfeldliste': repeat({type: 'boolean'}, 3),
+				'Textfeld1': [{type: 'string'}],
+				'Textfeld2': [{type: 'string'}],
+				'Textfeld3': [{type: 'string'}],
+				'Textfeld4': [{type: 'string'}],
+				'Textfeld5': [{type: 'string'}],
+				'Textfeld6': [{type: 'string'}],
+				'Textfeld7': [{type: 'string'}],
+				'Textfeld8': [{type: 'string'}],
+				'Textfeld9': repeat({type: 'string'}, 16),
+				'Textfeld10': repeat({type: 'string'}, 24),
+				'Textfeld11': [{type: 'string'}],
+				'Textfeld12': [{type: 'string'}],
+				'Textfeld13': [{type: 'string'}],
+				'Textfeld14': repeat({type: 'string'}, 5),
 			});
 			done();
 		});
@@ -108,12 +108,269 @@ describe ('pdfform', function() {
 			var fields = pdfform().list_fields(contents);
 
 			assert.deepStrictEqual(fields, {
-				'Hello World_4SEXUsSJ-VWn6n1APNranw': ['string'],
-				'fc-int01-generateAppearances': ['string'],
+				'Hello World_4SEXUsSJ-VWn6n1APNranw': [{type: 'string'}],
+				'fc-int01-generateAppearances': [{type: 'string'}],
 			});
 
 			var res = pdfform().transform(contents, {
 				'Hello World_4SEXUsSJ-VWn6n1APNranw': ['hi!'],
+			});
+			fs.writeFile(out_fn, new Buffer(res), {encoding: 'binary'}, done);
+		});
+	});
+
+	it('flooie-cjd100-doc', function(done) {
+		var in_fn = __dirname + '/data/CJ-D 100 Complaint for Annulment.pdf';
+		var out_fn = __dirname + '/data/out-flooie-cjd100.pdf';
+		fs.readFile(in_fn, function(err, contents) {
+			if (err) {
+				return done(err);
+			}
+			var fields = pdfform().list_fields(contents, true);
+
+			assert.deepStrictEqual(fields, {
+				"form1[0].BodyPage1[0].DropDownList1": [
+						{
+								"type": "select",
+								"options": [
+										"  ",
+										"Barnstable",
+										"Berkshire",
+										"Bristol",
+										"Dukes",
+										"Essex",
+										"Franklin",
+										"Hampden",
+										"Hampshire",
+										"Middlesex",
+										"Nantucket",
+										"Norfolk",
+										"Plymouth",
+										"Suffolk",
+										"Worcester"
+								]
+						}
+				],
+				"form1[0].BodyPage1[0].TextField1": [
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						}
+				],
+				"form1[0].BodyPage1[0].TextField2": [
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						}
+				],
+				"form1[0].BodyPage1[0].RadioButtonList": [
+						{
+								"type": "boolean"
+						}
+				],
+				"form1[0].BodyPage1[0].TextField4": [
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						}
+				],
+				"form1[0].BodyPage1[0].CheckBox1": [
+						{
+								"type": "boolean"
+						},
+						{
+								"type": "boolean"
+						},
+						{
+								"type": "boolean"
+						}
+				],
+				"form1[0].BodyPage1[0].Sub2[0].Multi2": [
+						{
+								"type": "string"
+						}
+				],
+				"form1[0].BodyPage1[0].Sub1[0].Multi1": [
+						{
+								"type": "string"
+						}
+				],
+				"form1[0].#subform[1].DropDownList1": [
+						{
+								"type": "select",
+								"options": [
+										"  ",
+										"Barnstable",
+										"Berkshire",
+										"Bristol",
+										"Dukes",
+										"Essex",
+										"Franklin",
+										"Hampden",
+										"Hampshire",
+										"Middlesex",
+										"Nantucket",
+										"Norfolk",
+										"Plymouth",
+										"Suffolk",
+										"Worcester"
+								]
+						}
+				],
+				"form1[0].#subform[1].TextField1": [
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						}
+				],
+				"form1[0].#subform[1].TextField2": [
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						}
+				],
+				"form1[0].#subform[1].TextField4": [
+						{
+								"type": "string"
+						}
+				],
+				"form1[0].#subform[1].CheckBox1": [
+						{
+								"type": "boolean"
+						},
+						{
+								"type": "boolean"
+						},
+						{
+								"type": "boolean"
+						},
+						{
+								"type": "boolean"
+						},
+						{
+								"type": "boolean"
+						}
+				],
+				"form1[0].#subform[1].RadioButtonList": [
+						{
+								"type": "boolean"
+						},
+						{
+								"type": "boolean"
+						},
+						{
+								"type": "boolean"
+						},
+						{
+								"type": "boolean"
+						}
+				],
+				"form1[0].#subform[1].DateTimeField1": [
+						{
+								"type": "string"
+						}
+				],
+				"form1[0].#subform[1].TextField5": [
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						},
+						{
+								"type": "string"
+						}
+				],
+				"form1[0].#subform[1].TextField7": [
+						{
+								"type": "string"
+						}
+				],
+				"form1[0].#subform[1].TextField6": [
+						{
+								"type": "string"
+						}
+				],
+			});
+
+			var res = pdfform().transform(contents, {
+				'form1[0].BodyPage1[0].DropDownList1': 'Middlesex',
 			});
 			fs.writeFile(out_fn, new Buffer(res), {encoding: 'binary'}, done);
 		});
