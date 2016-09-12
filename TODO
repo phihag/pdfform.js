@@ -1,6 +1,4 @@
-add README (dist/installation)
-answer/close #1
-
+generate appearances
 set up proper npm publishing
 automatic releasing
 find a way to get PDFDocument etc. references with native pdf.js

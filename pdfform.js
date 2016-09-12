@@ -269,9 +269,11 @@ function visit_acroform_fields(doc, callback) {
 			var page = doc.fetch(page_ref);
 			var annots_ref = page.map.Annots;
 			var annots = doc.fetch(annots_ref);
+
 			annots.forEach(function(annot_ref) {
 				var n = doc.fetch(annot_ref);
 				n._pdfform_ref = annot_ref;
+				n._inpage_annot = true;
 				if (n.map && n.map.Type && n.map.Type.name == 'Annot') {
 					callback(n);
 				}
@@ -363,6 +365,7 @@ function transform(buf, fields) {
 		var e = objects.update(ref, n);
 		objects.write_object(out, e);
 	});
+
 	var acroform_ref = doc.get_acroform_ref();
 	if (acroform_ref) { // Acroform present
 		doc.acroForm.map.NeedAppearances = true;
