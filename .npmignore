@@ -1,0 +1,8 @@
+libs/
+test/
+docs/
+.eslintrc
+.npmignore
+.travis.yml
+Makefile
+TODO
