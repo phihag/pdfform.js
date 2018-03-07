@@ -55,6 +55,10 @@ describe('minipdf parsing', function() {
 		assert_parse('false', false);
 	});
 
+	it('null parsing', () => {
+		assert_parse(' null', null);
+	});
+
 	it('number parsing', function() {
 		assert_parse('1', 1);
 		assert_parse('-1', -1);

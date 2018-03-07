@@ -100,6 +100,8 @@ function serialize(node, uncompressed) {
 		return node;
 	} else if (minipdf_lib.isBool(node)) {
 		return node;
+	} else if (minipdf_lib.isNull(node)) {
+		return 'null';
 	} else if (minipdf_lib.isName(node)) {
 		assert(node.name);
 		return '/' + node.name;

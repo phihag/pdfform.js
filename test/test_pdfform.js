@@ -1,9 +1,10 @@
 'use strict';
 
-var assert = require('assert');
-var fs = require('fs');
+const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
 
-var pdfform = require('../pdfform.js');
+const pdfform = require('../pdfform.js');
 
 function repeat(val, len) {
 	var res = [];
@@ -377,4 +378,21 @@ describe ('pdfform', function() {
 		});
 	});
 
+	it('special characters (≤) in text', (done) => {
+		const in_fn = path.join(__dirname, 'data', 'simple.pdf');
+		const out_fn = path.join(__dirname, 'data', 'out-simple.pdf');
+		fs.readFile(in_fn, (err, contents) => {
+			if (err) return done(err);
+			const fields = pdfform().list_fields(contents);
+			assert.deepStrictEqual(fields, {
+				textbox1: [{type: 'string'}],
+			});
+
+			const res = pdfform().transform(contents, {
+				'textbox1': ['a ≤ b'],
+			});
+
+			fs.writeFile(out_fn, new Buffer(res), {encoding: 'binary'}, done);
+		});
+	});
 });
