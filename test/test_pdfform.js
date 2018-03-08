@@ -389,10 +389,20 @@ describe ('pdfform', function() {
 			});
 
 			const res = pdfform().transform(contents, {
-				'textbox1': ['a ≤ b'],
+				'textbox1': ['a≤b'],
 			});
 
 			fs.writeFile(out_fn, new Buffer(res), {encoding: 'binary'}, done);
 		});
+	});
+
+	it('serialize_str', () => {
+		const serialize_str = pdfform()._serialize_str;
+		assert.strictEqual(serialize_str('abc def9'), '(abc def9)');
+		assert.strictEqual(serialize_str('(a a'), '(\\(a a)');
+		assert.strictEqual(serialize_str('ä'), '(ä)');
+		assert.strictEqual(serialize_str('≤'), '(\xfe\xff"d)');
+		assert.strictEqual(serialize_str('a≤'), '(\xfe\xff\x00a"d)');
+		assert.strictEqual(serialize_str('a ≤ b ä'), '(\xfe\xff\x00a\x00 "d\x00 \x00b\x00 \x00\xe4)');
 	});
 });

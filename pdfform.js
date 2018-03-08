@@ -65,32 +65,55 @@ BytesIO.prototype = {
 };
 
 
-// Code from pdf.utils.js (ASL2) starts here
 function pad(num, length) {
-  var ret = num + '';
-  while (ret.length < length) {
-	ret = '0' + ret;
-  }
-  return ret;
-}
-
-function hasSpecialChar(str) {
-  for (var i = 0, ii = str.length; i < ii; i++) {
-	switch (str[i]) {
-	case '(':
-	case ')':
-	case '\\':
-	case '\n':
-	case '\r':
-	case '\t':
-	case '\b':
-	case '\f':
-		return true;
+	var ret = num + '';
+	while (ret.length < length) {
+		ret = '0' + ret;
 	}
-  }
-  return false;
+	return ret;
 }
 
+function serialize_str(str) {
+	var ret, i;
+
+	// simple chars, use plaintext
+	if (/^[-_/. a-zA-Z0-9]+$/.test(str)) {
+		return '(' + str + ')';
+	}
+
+	// Only ASCII and some common ANSI chars
+	if (/^[\x00-\x7FäöüÄÖÜß]*$/.test(str)) { // eslint-disable-line no-control-regex
+		ret = '(';
+		for (i = 0; i < str.length; i++) {
+			var c = str[i];
+			if (c === '\\' || c === '(' || c === ')') {
+				ret += '\\';
+			}
+			ret += c;
+		}
+		ret += ')';
+		return ret;
+	}
+
+	// Unicode
+	ret = '(';
+	ret += '\u00fe\u00ff';
+	for (i = 0; i < str.length; i++) {
+		var cu = str.charCodeAt(i);
+		var c1 = String.fromCharCode(cu >> 8);
+		if (c1 === '\\' || c1 === '(' || c1 === ')') {
+			ret += '\\';
+		}
+		ret += c1;
+		var c2 = String.fromCharCode(cu & 0xff);
+		if (c2 === '\\' || c2 === '(' || c2 === ')') {
+			ret += '\\';
+		}
+		ret += c2;
+	}
+	ret += ')';
+	return ret;
+}
 
 function serialize(node, uncompressed) {
 	var i, ret;  // Wishing for let in modern browsers :(
@@ -106,15 +129,7 @@ function serialize(node, uncompressed) {
 		assert(node.name);
 		return '/' + node.name;
 	} else if (minipdf_lib.isString(node)) {
-		if (!hasSpecialChar(node)) {
-			return '(' + node + ')';
-		} else {
-			ret = '<';
-			for (i = 0; i < node.length; i++) {
-				ret += pad(node.charCodeAt(i).toString(16), 2);
-			}
-			return ret + '>';
-		}
+		return serialize_str(node);
 	} else if (minipdf_lib.isArray(node)) {
 		ret = ['['];
 		for (i = 0; i < node.length; i++) {
@@ -157,8 +172,6 @@ function serialize(node, uncompressed) {
 		throw new Error('Unknown node type ' + JSON.stringify(node));
 	}
   }
-
-// End of code from pdf.utils.js
 
 function PDFObjects(doc) {
 	this.entries = doc.get_xref_entries();
@@ -468,6 +481,9 @@ function list_fields(data) {
 return {
 	transform: transform,
 	list_fields: list_fields,
+	// test only
+	_serialize_str: serialize_str,
+	_decode_str: pdf_decode_str,
 };
 }
 

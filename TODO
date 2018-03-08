@@ -1,7 +1,3 @@
-fix make test lint locally
-test with ≥
-
-
 generate appearances?
 automatic releasing
 find a way to get PDFDocument etc. references with native pdf.js
