@@ -21,7 +21,7 @@
     "mocha": "*",
     "async": "*",
     "eslint": "*",
-    "uglify-js": "*"
+    "uglify-js": "3.x"
   },
   "version": "1.0.2"
 }
