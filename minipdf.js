@@ -40,6 +40,9 @@ function isRef(obj) {
 function isBool(obj) {
 	return typeof obj == 'boolean';
 }
+function isNull(obj) {
+	return obj === null;
+}
 function isString(obj) {
 	return typeof obj == 'string';
 }
@@ -436,6 +439,9 @@ PDFReader.prototype = {
 		if (this.skip_start('false')) {
 			return false;
 		}
+		if (this.skip_start('null')) {
+			return null;
+		}
 
 		var s = buf2str(this.buf, this.pos, this.pos+32);
 		var m = /^([0-9]+)\s+([0-9]+)\s+R/.exec(s);
@@ -657,6 +663,7 @@ return {
 	isArray: isArray,
 	isString: isString,
 	isBool: isBool,
+	isNull: isNull,
 	newStream: newStream,
 	assert: assert,
 	buf2str: buf2str,

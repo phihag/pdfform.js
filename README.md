@@ -16,16 +16,18 @@ Alternatively, download/clone this repository and add `minipdf.js` and `pdfform.
 
 Simply call `transform` with the PDF file contents and the fields.
 
-	<!-- download from https://raw.githubusercontent.com/phihag/pdfform.js/dist/dist/pdfform.minipdf.dist.js -->
-    <script src="downloaded/pdfform.minipdf.dist.js"></script>
-    <script>
-    var pdf_buf = ...; // load PDF into an ArrayBuffer, for example via XHR (see demo)
-    var fields = {
-    	'fieldname': ['value for fieldname[0]', 'value for fieldname[1]'],
-    };
-    var out_buf = pdfform().transform(pdf_buf, fields);
-    // Do something with the resulting PDF file in out_buf
-    </script>
+```html
+<!-- download from https://raw.githubusercontent.com/phihag/pdfform.js/dist/dist/pdfform.minipdf.dist.js -->
+<script src="downloaded/pdfform.minipdf.dist.js"></script>
+<script>
+var pdf_buf = ...; // load PDF into an ArrayBuffer, for example via XHR (see demo)
+var fields = {
+    'fieldname': ['value for fieldname[0]', 'value for fieldname[1]'],
+};
+var out_buf = pdfform().transform(pdf_buf, fields);
+// Do something with the resulting PDF file in out_buf
+</script>
+```
 
 There is also a `list_fields` function which allows you to list all available fields and their types.
 

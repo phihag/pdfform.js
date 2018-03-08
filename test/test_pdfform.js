@@ -1,9 +1,10 @@
 'use strict';
 
-var assert = require('assert');
-var fs = require('fs');
+const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
 
-var pdfform = require('../pdfform.js');
+const pdfform = require('../pdfform.js');
 
 function repeat(val, len) {
 	var res = [];
@@ -377,4 +378,31 @@ describe ('pdfform', function() {
 		});
 	});
 
+	it('special characters (≤) in text', (done) => {
+		const in_fn = path.join(__dirname, 'data', 'simple.pdf');
+		const out_fn = path.join(__dirname, 'data', 'out-simple.pdf');
+		fs.readFile(in_fn, (err, contents) => {
+			if (err) return done(err);
+			const fields = pdfform().list_fields(contents);
+			assert.deepStrictEqual(fields, {
+				textbox1: [{type: 'string'}],
+			});
+
+			const res = pdfform().transform(contents, {
+				'textbox1': ['a≤b'],
+			});
+
+			fs.writeFile(out_fn, new Buffer(res), {encoding: 'binary'}, done);
+		});
+	});
+
+	it('serialize_str', () => {
+		const serialize_str = pdfform()._serialize_str;
+		assert.strictEqual(serialize_str('abc def9'), '(abc def9)');
+		assert.strictEqual(serialize_str('(a a'), '(\\(a a)');
+		assert.strictEqual(serialize_str('ä'), '(ä)');
+		assert.strictEqual(serialize_str('≤'), '(\xfe\xff"d)');
+		assert.strictEqual(serialize_str('a≤'), '(\xfe\xff\x00a"d)');
+		assert.strictEqual(serialize_str('a ≤ b ä'), '(\xfe\xff\x00a\x00 "d\x00 \x00b\x00 \x00\xe4)');
+	});
 });

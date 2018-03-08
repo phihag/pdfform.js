@@ -1,23 +1,27 @@
 {
-	"name": "pdfform.js",
-	"author": "Philipp Hagemeister <phihag@phihag.de>",
-	"description": "Fill out PDF forms in pure JavaScript",
-	"repository": {
-		"type": "git",
-		"url": "git://github.com/phihag/pdfform.js.git"
-	},
-	"scripts": {
-		"test": "mocha test/"
-	},
-	"dependencies": {
-		"xmldom": "*",
-		"text-encoding": "*"
-	},
-	"devDependencies": {
-		"mocha": "*",
-		"async": "*",
-		"jshint": "*",
-		"eslint": "*"
-	},
-	"version": "1.0.2"
+  "name": "pdfform.js",
+  "author": "Philipp Hagemeister <phihag@phihag.de>",
+  "description": "Fill out PDF forms in pure JavaScript",
+  "main": "pdfform.js",
+  "browser": "dist/pdfform.minipdf.dist.js",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/phihag/pdfform.js.git"
+  },
+  "scripts": {
+    "test": "mocha test/",
+    "prepublishOnly": "make clean_dist && make lint && make test && make dist"
+  },
+  "dependencies": {
+    "xmldom": "*",
+    "text-encoding": "*"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "async": "*",
+    "eslint": "*",
+    "uglify-js": "3.x"
+  },
+  "version": "1.0.2"
 }
