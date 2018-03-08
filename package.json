@@ -23,5 +23,5 @@
     "eslint": "*",
     "uglify-js": "3.x"
   },
-  "version": "1.0.2"
+  "version": "1.0.3"
 }
