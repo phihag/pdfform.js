@@ -72,6 +72,9 @@ pdf_js.str2buf = function(s) {
 	}
 	return uint;
 };
+pdf_js.isNull = function(x) {
+	return x === null;
+};
 
 return pdf_js;
 })();
