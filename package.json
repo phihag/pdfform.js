@@ -20,7 +20,8 @@
   "devDependencies": {
     "mocha": "*",
     "async": "*",
-    "eslint": "*"
+    "eslint": "*",
+    "uglify": "*"
   },
   "version": "1.0.2"
 }
