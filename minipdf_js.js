@@ -47,6 +47,7 @@ pdf_js.parse = function(buf) {
 	doc.get_xref_entries = function() {
 		return this.xref.entries;
 	};
+	doc.root = doc.catalog.catDict;
 	return doc;
 };
 pdf_js.newDict = function(map) {
