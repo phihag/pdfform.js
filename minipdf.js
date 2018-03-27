@@ -680,6 +680,6 @@ return {
 })();
 
 if ((typeof module != 'undefined') && (typeof require != 'undefined')) {
-	var pako = require('./libs/pako.min.js');
+	var pako = require('pako');
 	module.exports = minipdf;
 }
