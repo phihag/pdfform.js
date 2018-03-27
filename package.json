@@ -15,7 +15,8 @@
   },
   "dependencies": {
     "xmldom": "*",
-    "text-encoding": "*"
+    "text-encoding": "*",
+    "pako": "*"
   },
   "devDependencies": {
     "async": "*",

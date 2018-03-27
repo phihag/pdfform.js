@@ -8,7 +8,7 @@ if (typeof window == 'undefined') {
 	var TextEncoder = text_encoding.TextEncoder;
 	var TextDecoder = text_encoding.TextDecoder;
 
-	var pako = require('./libs/pako.min.js');
+	var pako = require('pako');
 }
 
 function pdfform(minipdf_lib) {
