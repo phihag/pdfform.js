@@ -241,11 +241,14 @@ write_xref_stream: function(out, prev, root_ref) {
 	this.write_object(out, entry, true);
 },
 write_xref_table: function(out, prev, root_ref) {
-	var size = 1 + this.entries.length;
+	var entries = this.entries.filter(function(e) {
+		return !e.is_free;
+	});
+	var size = 1 + entries.length;
 	out.write_str('xref\n');
 	out.write_str('0 ' + size + '\n');
 	out.write_str('0000000000 65535 f\r\n');
-	this.entries.forEach(function(e) {
+	entries.forEach(function(e) {
 		assert(e.offset !== undefined, 'entry should have an offset');
 		out.write_str(pad(e.offset, 10) + ' ' + pad(e.gen, 5) + ' n\r\n');
 	});
@@ -433,7 +436,7 @@ function transform(buf, fields) {
 		objects.write_xref_stream(out, doc.startXRef, root_ref);
 	}
 
-	out.write_str('startxref\n');
+	out.write_str('\nstartxref\n');
 	out.write_str(startxref + '\n');
 	out.write_str('%%EOF');
 

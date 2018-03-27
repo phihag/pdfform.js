@@ -570,6 +570,7 @@ PDFReader.prototype = {
 			xref.push({
 				offset: offset,
 				gen: gen,
+				is_free: (usage === 102),
 			});
 		}
 
