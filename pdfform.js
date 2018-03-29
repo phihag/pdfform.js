@@ -13,6 +13,10 @@ if (typeof window == 'undefined') {
 
 function pdfform(minipdf_lib) {
 
+if (minipdf_lib === 'pdf.js') {
+	minipdf_lib = require('./minipdf_js.js');
+}
+
 if (! minipdf_lib) {
 	// autodetct which library to use
 	if (typeof minipdf_js != 'undefined') {
