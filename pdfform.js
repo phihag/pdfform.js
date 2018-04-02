@@ -372,13 +372,15 @@ function transform(buf, fields) {
 			return;
 		}
 
-		var ft_name = n.map.FT.name;
+		var ft_name = n.map.FT ? n.map.FT.name : 'Tx';
 		if (ft_name == 'Tx') {
 			n.map.V = '' + spec;
 		} else if (ft_name == 'Btn') {
 			n.map.AS = n.map.V = n.map.DV = spec ? new minipdf_lib.Name('Yes') : new minipdf_lib.Name('Off');
 		} else if (ft_name == 'Ch') {
 			n.map.V =  '' + spec;
+		} else if (ft_name == 'Sig') {
+			return; // Signature fields are not supported so far
 		} else {
 			throw new Error('Unsupported input type ' + n.map.FT.name);
 		}
@@ -462,7 +464,7 @@ function list_fields(data) {
 		}
 
 		var spec;
-		var ft_name = n.map.FT.name;
+		var ft_name = n.map.FT ? n.map.FT.name : 'Tx';
 		if (ft_name === 'Tx') {
 			spec = {type: 'string'};
 		} else if (ft_name === 'Btn') {
@@ -472,6 +474,8 @@ function list_fields(data) {
 				type: 'select',
 				options: n.map.Opt.slice(),
 			};
+		} else if (ft_name === 'Sig') {
+			return; // Signature names are not supported so far
 		} else {
 			throw new Error('Unsupported input type' + ft_name);
 		}
