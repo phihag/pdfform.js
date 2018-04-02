@@ -372,7 +372,7 @@ function transform(buf, fields) {
 			return;
 		}
 
-		var ft_name = n.map.FT ? n.map.FT.name : 'Tx';
+		var ft_name = n.map.FT.name;
 		if (ft_name == 'Tx') {
 			n.map.V = '' + spec;
 		} else if (ft_name == 'Btn') {
@@ -464,7 +464,7 @@ function list_fields(data) {
 		}
 
 		var spec;
-		var ft_name = n.map.FT ? n.map.FT.name : 'Tx';
+		var ft_name = n.map.FT.name;
 		if (ft_name === 'Tx') {
 			spec = {type: 'string'};
 		} else if (ft_name === 'Btn') {
