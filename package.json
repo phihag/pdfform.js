@@ -24,5 +24,5 @@
     "mocha": "^5.0.4",
     "uglify-js": "3.x"
   },
-  "version": "1.0.9"
+  "version": "1.0.10"
 }
