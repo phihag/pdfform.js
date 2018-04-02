@@ -1,4 +1,1 @@
-generate appearances?
-automatic releasing
-find a way to get PDFDocument etc. references with native pdf.js
-	WorkerMessageHandler.createDocumentHandler.? -> localPDFManager -> PDFDocument
+minipdf: support skysoft

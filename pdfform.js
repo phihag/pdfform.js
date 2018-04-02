@@ -280,7 +280,7 @@ function visit_acroform_fields(doc, callback) {
 
 			if (n.map && n.map.Kids) {
 				to_visit.push.apply(to_visit, n.map.Kids);
-			} else if (n.map && n.map.Type && n.map.Type.name == 'Annot') {
+			} else if (n.map && n.map.Type && n.map.Type.name == 'Annot' && n.map.T) {
 				callback(n);
 			}
 		}
@@ -296,7 +296,7 @@ function visit_acroform_fields(doc, callback) {
 				var n = doc.fetch(annot_ref);
 				n._pdfform_ref = annot_ref;
 				n._inpage_annot = true;
-				if (n.map && n.map.Type && n.map.Type.name == 'Annot') {
+				if (n.map && n.map.Type && n.map.Type.name == 'Annot' && n.map.T) {
 					callback(n);
 				}
 			});
