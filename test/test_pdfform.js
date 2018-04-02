@@ -420,10 +420,10 @@ describe ('pdfform', function() {
 			const fields = pdfform(pdfjs_wrap).list_fields(in_buf);
 			assert.deepStrictEqual(fields, {
 				'MasterCard': [
-					{'type': 'boolean'}
+					{'type': 'boolean'},
 				],
 				'Visa': [
-					{'type': 'boolean'}
+					{'type': 'boolean'},
 				],
 			});
 
