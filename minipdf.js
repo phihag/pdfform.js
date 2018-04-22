@@ -97,6 +97,18 @@ function png_filter(content, columns) {
 }
 
 
+function _merge_xrefs(xref_table, prev) {
+	var len = Math.max(xref_table.length, prev.length);
+	for (var i = 1;i < len;i++) {
+		if (!prev[i]) {
+			continue;
+		}
+		if (!xref_table[i]) {
+			xref_table[i] = prev[i];
+		}
+	}
+}
+
 
 function inflate(content, params_map) {
 	var columns;
@@ -547,7 +559,9 @@ PDFReader.prototype = {
 		};
 	},
 	parse_xref_table: function() {
-		this.skip_start('xref');
+		if (!this.skip_start('xref')) {
+			throw new Error('xref table does not start with xref!');
+		}
 		this.skip_space();
 		var start_num = this.parse_num();
 		var xref = [];
@@ -555,18 +569,26 @@ PDFReader.prototype = {
 			xref.push(undefined);
 		}
 		this.skip_space();
-		var count = this.parse_num();
-		for (var i = 0;i < count;i++) {
+		this.parse_num();  // count. Sometimes this is just a lie though, so ignore it
+		for (;;) {
 			this.skip_space();
+			if (this.skip_start('trailer')) {
+				break;
+			}
 			var offset = this.parse_num();
 			this.skip_space();
 			var gen = this.parse_num();
 			this.skip_space();
 			var usage = this.buf[this.pos];
-			if ((usage != 102) && (usage != 110)) { // n and f
-				throw new Error('Invalid usage character ' + usage);
+			if ((usage == 102) || (usage == 110)) { // n and f
+				this.pos++;
+			} else {
+				// no usage character: this means we need to skip
+				while (xref.length < offset) {
+					xref.push(undefined);
+				}
+				continue;
 			}
-			this.pos++;
 			xref.push({
 				offset: offset,
 				gen: gen,
@@ -574,11 +596,12 @@ PDFReader.prototype = {
 			});
 		}
 
-		this.skip_space();
-		if (!this.skip_start('trailer')) {
-			throw new Error('Missing trailer');
-		}
 		var meta = this.parse();
+		if (meta.map.Prev) {
+			this.pos = meta.map.Prev;
+			var old = this.parse_xref_table();
+			_merge_xrefs(xref, old.xref);
+		}
 
 		return {
 			xref: xref,
