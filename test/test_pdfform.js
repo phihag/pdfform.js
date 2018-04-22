@@ -405,4 +405,36 @@ describe ('pdfform', function() {
 		assert.strictEqual(serialize_str('a≤'), '(\xfe\xff\x00a"d)');
 		assert.strictEqual(serialize_str('a ≤ b ä'), '(\xfe\xff\x00a\x00 "d\x00 \x00b\x00 \x00\xe4)');
 	});
+
+	it('SkySoft PDF editor with radio and signature (with pdf.js)', function(done) {
+		const in_fn = __dirname + '/data/skysoft-example.pdf';
+		const out_fn = __dirname + '/data/skysoft.out.pdf';
+
+		fs.readFile(in_fn, function(err, in_buf) {
+			if (err) {
+				return done(err);
+			}
+
+			const pdfjs_wrap = require('../minipdf_js.js');
+
+			const fields = pdfform(pdfjs_wrap).list_fields(in_buf);
+			assert.deepStrictEqual(fields, {
+				'MasterCard': [
+					{'type': 'boolean'},
+				],
+				'Visa': [
+					{'type': 'boolean'},
+				],
+			});
+
+			const values = {
+				'MasterCard': [[true]],
+				'Visa': [[true]],
+			};
+
+			const res = pdfform(pdfjs_wrap).transform(in_buf, values);
+			fs.writeFile(out_fn, new Buffer(res), {encoding: 'binary'}, done);
+		});
+	});
+
 });

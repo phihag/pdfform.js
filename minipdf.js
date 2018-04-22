@@ -570,6 +570,7 @@ PDFReader.prototype = {
 			xref.push({
 				offset: offset,
 				gen: gen,
+				is_free: (usage === 102),
 			});
 		}
 
@@ -680,6 +681,6 @@ return {
 })();
 
 if ((typeof module != 'undefined') && (typeof require != 'undefined')) {
-	var pako = require('./libs/pako.min.js');
+	var pako = require('pako');
 	module.exports = minipdf;
 }

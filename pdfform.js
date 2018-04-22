@@ -8,10 +8,14 @@ if (typeof window == 'undefined') {
 	var TextEncoder = text_encoding.TextEncoder;
 	var TextDecoder = text_encoding.TextDecoder;
 
-	var pako = require('./libs/pako.min.js');
+	var pako = require('pako');
 }
 
 function pdfform(minipdf_lib) {
+
+if (minipdf_lib === 'pdf.js') {
+	minipdf_lib = require('./minipdf_js.js');
+}
 
 if (! minipdf_lib) {
 	// autodetct which library to use
@@ -241,11 +245,14 @@ write_xref_stream: function(out, prev, root_ref) {
 	this.write_object(out, entry, true);
 },
 write_xref_table: function(out, prev, root_ref) {
-	var size = 1 + this.entries.length;
+	var entries = this.entries.filter(function(e) {
+		return !e.is_free;
+	});
+	var size = 1 + entries.length;
 	out.write_str('xref\n');
 	out.write_str('0 ' + size + '\n');
 	out.write_str('0000000000 65535 f\r\n');
-	this.entries.forEach(function(e) {
+	entries.forEach(function(e) {
 		assert(e.offset !== undefined, 'entry should have an offset');
 		out.write_str(pad(e.offset, 10) + ' ' + pad(e.gen, 5) + ' n\r\n');
 	});
@@ -273,7 +280,7 @@ function visit_acroform_fields(doc, callback) {
 
 			if (n.map && n.map.Kids) {
 				to_visit.push.apply(to_visit, n.map.Kids);
-			} else if (n.map && n.map.Type && n.map.Type.name == 'Annot') {
+			} else if (n.map && n.map.Type && n.map.Type.name == 'Annot' && n.map.T) {
 				callback(n);
 			}
 		}
@@ -289,7 +296,7 @@ function visit_acroform_fields(doc, callback) {
 				var n = doc.fetch(annot_ref);
 				n._pdfform_ref = annot_ref;
 				n._inpage_annot = true;
-				if (n.map && n.map.Type && n.map.Type.name == 'Annot') {
+				if (n.map && n.map.Type && n.map.Type.name == 'Annot' && n.map.T) {
 					callback(n);
 				}
 			});
@@ -372,6 +379,8 @@ function transform(buf, fields) {
 			n.map.AS = n.map.V = n.map.DV = spec ? new minipdf_lib.Name('Yes') : new minipdf_lib.Name('Off');
 		} else if (ft_name == 'Ch') {
 			n.map.V =  '' + spec;
+		} else if (ft_name == 'Sig') {
+			return; // Signature fields are not supported so far
 		} else {
 			throw new Error('Unsupported input type ' + n.map.FT.name);
 		}
@@ -433,7 +442,7 @@ function transform(buf, fields) {
 		objects.write_xref_stream(out, doc.startXRef, root_ref);
 	}
 
-	out.write_str('startxref\n');
+	out.write_str('\nstartxref\n');
 	out.write_str(startxref + '\n');
 	out.write_str('%%EOF');
 
@@ -465,6 +474,8 @@ function list_fields(data) {
 				type: 'select',
 				options: n.map.Opt.slice(),
 			};
+		} else if (ft_name === 'Sig') {
+			return; // Signature names are not supported so far
 		} else {
 			throw new Error('Unsupported input type' + ft_name);
 		}
