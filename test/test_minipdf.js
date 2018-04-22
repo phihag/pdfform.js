@@ -213,4 +213,12 @@ describe('minipdf parsing', function() {
 		assert(doc.acroForm);
 		assert(doc.acroForm.map.XFA);
 	});
+
+	it('missing trailer (https://github.com/phihag/pdfform.js/issues/8)', function() {
+		var buf = fs.readFileSync(__dirname + '/data/missing-trailer.pdf');
+		var doc = new minipdf.PDFDocument(buf);
+		assert.deepStrictEqual(doc.root.map.Type, new minipdf.Name('Catalog'));
+		assert(doc.acroForm);
+	});
+
 });
