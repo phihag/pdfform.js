@@ -470,6 +470,7 @@ PDFReader.prototype = {
 		throw new Error('Unable to parse ' + buf2str(this.buf, this.pos, this.pos + 40));
 	},
 	parse_xref: function() {
+		var i;
 		if (startswith(this.buf, this.pos, 'xref')) {
 			// Textual xref table;
 			this.xref_type = 'table';
@@ -502,34 +503,42 @@ PDFReader.prototype = {
 		assert(
 			obj.content.length % (type_length + offset_length + gen_length) === 0,
 			'content is ' + obj.content.length + ' bytes long, each entry is ' + JSON.stringify(obj.map.W));
-		
 
-		var first_index = 0;
-		if (obj.map.Index) {
-			first_index = obj.map.Index[0];
-			assert(typeof first_index == 'number');
-		}
-
-		var count = obj.content.length / (type_length + offset_length + gen_length);
-		if (obj.map.Index) {
-			assert(
-				obj.map.Index[1] == count,
-				'Invalid xref stream index: index says ' + obj.map.Index[1] + ' objects, but space for ' + count);
-		}
-		var reader = new PDFReader(obj.content);
-		for (var i = 0;i < count;i++) {
-			var type = 1;
-			if (type_length) {
-				type = reader.read_uint(type_length);
+		var total_count = obj.content.length / (type_length + offset_length + gen_length);
+		var index = obj.map.Index;
+		if (index) {
+			var aggregate_count = 0;
+			for (i = 0;i < index.length;i += 2) {
+				assert(typeof index[i] == 'number');
+				assert(typeof index[i + 1] == 'number');
+				aggregate_count += index[i + 1];
 			}
-			var offset = reader.read_uint(offset_length);
-			var gen = reader.read_uint(gen_length);
-			xref[first_index + i] = {
-				uncompressed: type != 2,
-				type: type,
-				offset: offset,
-				gen: gen,
-			};
+			assert(
+				aggregate_count == total_count,
+				'Invalid xref stream index: index says ' + aggregate_count + ' objects, but space for ' + total_count);
+		} else {
+			index = [0, total_count];
+		}
+
+		var reader = new PDFReader(obj.content);
+		for (var index_i = 0;index_i < index.length;index_i += 2) {
+			var first_index = index[index_i];
+			var count = index[index_i + 1];
+
+			for (i = 0;i < count;i++) {
+				var type = 1;
+				if (type_length) {
+					type = reader.read_uint(type_length);
+				}
+				var offset = reader.read_uint(offset_length);
+				var gen = reader.read_uint(gen_length);
+				xref[first_index + i] = {
+					uncompressed: type != 2,
+					type: type,
+					offset: offset,
+					gen: gen,
+				};
+			}
 		}
 		assert(reader.at_eof());
 

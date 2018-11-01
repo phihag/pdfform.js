@@ -206,19 +206,26 @@ describe('minipdf parsing', function() {
 		assert.strictEqual(r.read_uint(4), 0xff1299ab);
 	});
 
-	it('a real file', function() {
-		var buf = fs.readFileSync(__dirname + '/data/Spielberichtsbogen_2BL.pdf');
-		var doc = new minipdf.PDFDocument(buf);
+	it('a real file', () => {
+		const buf = fs.readFileSync(__dirname + '/data/Spielberichtsbogen_2BL.pdf');
+		const doc = new minipdf.PDFDocument(buf);
 		assert.deepStrictEqual(doc.root.map.Type, new minipdf.Name('Catalog'));
 		assert(doc.acroForm);
 		assert(doc.acroForm.map.XFA);
 	});
 
-	it('missing trailer (https://github.com/phihag/pdfform.js/issues/8)', function() {
-		var buf = fs.readFileSync(__dirname + '/data/missing-trailer.pdf');
-		var doc = new minipdf.PDFDocument(buf);
+	it('missing trailer (https://github.com/phihag/pdfform.js/issues/8)', () => {
+		const buf = fs.readFileSync(__dirname + '/data/missing-trailer.pdf');
+		const doc = new minipdf.PDFDocument(buf);
 		assert.deepStrictEqual(doc.root.map.Type, new minipdf.Name('Catalog'));
 		assert(doc.acroForm);
 	});
 
+	it('Sparse index streams (https://github.com/phihag/pdfform.js/issues/19)', () => {
+		const buf = fs.readFileSync(__dirname + '/data/french-adobe-reader.pdf');
+		const doc = new minipdf.PDFDocument(buf);
+		assert.deepStrictEqual(doc.root.map.Type, new minipdf.Name('Catalog'));
+		assert(doc.acroForm);
+		assert(doc.acroForm.map.XFA);
+	});
 });
