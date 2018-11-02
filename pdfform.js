@@ -358,6 +358,7 @@ function modify_xfa(doc, objects, out, index, callback) {
 
 function transform(buf, fields) {
 	var doc = minipdf_lib.parse(new Uint8Array(buf));
+	assert(doc.startXRef);
 	var objects = new PDFObjects(doc);
 	var root_id = doc.get_root_id();
 	var root_ref = new minipdf_lib.Ref(root_id, 0);
@@ -430,7 +431,6 @@ function transform(buf, fields) {
 				el.appendChild(ds_doc.createTextNode(val));
 			}
 		}
-
 		str = new XMLSerializer().serializeToString(ds_doc);
 		return str;
 	});

@@ -154,8 +154,8 @@ var PDFDocument = function(buf) {
 	this.reader = new PDFReader(buf);
 
 	check_header(buf);
-	this.startxref = find_startxref(buf);
-	this.reader.pos = this.startxref;
+	this.startXRef = find_startxref(buf);
+	this.reader.pos = this.startXRef;
 
 	var xref_res = this.reader.parse_xref();
 	this.xref = xref_res.xref;
@@ -532,12 +532,17 @@ PDFReader.prototype = {
 				}
 				var offset = reader.read_uint(offset_length);
 				var gen = reader.read_uint(gen_length);
-				xref[first_index + i] = {
-					uncompressed: type != 2,
+				var xr_dict = {
 					type: type,
 					offset: offset,
 					gen: gen,
 				};
+				if (type === 0) {
+					xr_dict.free = true;
+				} else {
+					xr_dict.uncompressed = type != 2;
+				}
+				xref[first_index + i] = xr_dict;
 			}
 		}
 		assert(reader.at_eof());

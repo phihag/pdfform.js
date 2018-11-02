@@ -437,7 +437,7 @@ describe ('pdfform', function() {
 		});
 	});
 
-	it('multuple xref tables', (done) => {
+	it('multiple xref tables', (done) => {
 		const in_fn = path.join(__dirname, 'data', 'missing-trailer.pdf');
 		fs.readFile(in_fn, (err, contents) => {
 			if (err) return done(err);
@@ -517,5 +517,23 @@ describe ('pdfform', function() {
 			});
 			done();
 		});
+	});
+
+	it('Adobe Acrobat incompatibility (https://github.com/phihag/pdfform.js/issues/19)', (done) => {
+		const pdfjs_wrap = require('../minipdf_js.js');
+		const input = fs.readFileSync(__dirname + '/data/french-adobe-reader.pdf');
+
+		const res = pdfform().transform(input, {
+			'txt_IdentitéMandant': ['Philipp Hagemeister3'],
+			'txt_MarqueImmatriculation': ['Mercedes-Benz'],
+		});
+
+		// Read what we wrote to make sure the index is correct
+		pdfform().list_fields(res);
+		// Also read with pdf.js
+		pdfform(pdfjs_wrap).list_fields(res);
+
+		const out_fn = __dirname + '/data/out-french-adobe-reader.pdf';
+		fs.writeFile(out_fn, new Buffer(res), {encoding: 'binary'}, done);
 	});
 });

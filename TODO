@@ -1,3 +1,6 @@
+write only changed entries to streams, with Index
+	(this fixes the recursive issue)
+
 minipdf: support skysoft?
 minipdf: support french form
 update pdf.js
