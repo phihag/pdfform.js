@@ -216,18 +216,35 @@ write_xref_stream: function(out, prev, root_ref) {
 	var map = {
 		Type: new minipdf_lib.Name('XRef'),
 		Size: this.entries.length + 1, // + 1 for this object itself
-		Length: 6 * (this.entries.length + 1),
 		Root: root_ref,
 		W: [1, 4, 1],
+		Index: [],
 	};
 	if (prev !== undefined) {
 		map.Prev = prev;
 	}
 
+	var total_count = 0;
+	var need_new_index = true;
 	var bio = new BytesIO();
 	var entry = this.add('__xref_stream__', 0);
 	entry.offset = out.position();
-	this.entries.forEach(function(e) {
+	this.entries.forEach(function(e, idx) {
+		var is_new_entry = e.uncompressed === 'added';
+		if (!is_new_entry) {
+			need_new_index = true;
+			return;
+		}
+
+		total_count++;
+		if (need_new_index) {
+			need_new_index = false;
+			map.Index.push(idx);
+			map.Index.push(1);
+		} else {
+			map.Index[map.Index.length - 1]++;
+		}
+
 		assert(e.offset !== undefined, 'entry should have an offset');
 		bio.write_buf(new Uint8Array([
 			(e.uncompressed ? 1 : 2),
@@ -239,6 +256,8 @@ write_xref_stream: function(out, prev, root_ref) {
 		]));
 	});
 	var ui8ar = bio.get_uint8array();
+
+	map.Length = 6 * (total_count + 1);
 
 	var stream = minipdf_lib.newStream(map, ui8ar);
 	entry.obj = stream;
