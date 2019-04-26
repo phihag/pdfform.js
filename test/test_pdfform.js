@@ -60,7 +60,7 @@ describe ('pdfform', function() {
 				return done(err);
 			}
 			var res = pdfform().transform(in_buf, fields);
-			fs.writeFile(out_fn, new Buffer(res), {encoding: 'binary'}, done);
+			fs.writeFile(out_fn, res, {}, done);
 		});
 	});
 
@@ -116,7 +116,7 @@ describe ('pdfform', function() {
 			var res = pdfform().transform(contents, {
 				'Hello World_4SEXUsSJ-VWn6n1APNranw': ['hi!'],
 			});
-			fs.writeFile(out_fn, new Buffer(res), {encoding: 'binary'}, done);
+			fs.writeFile(out_fn, res, {}, done);
 		});
 	});
 
@@ -374,7 +374,7 @@ describe ('pdfform', function() {
 				'form1[0].BodyPage1[0].DropDownList1': ['Middlesex'],
 				'form1[0].BodyPage1[0].TextField1': ['foo', 'bar'],
 			});
-			fs.writeFile(out_fn, new Buffer(res), {encoding: 'binary'}, done);
+			fs.writeFile(out_fn, res, {}, done);
 		});
 	});
 
@@ -392,7 +392,7 @@ describe ('pdfform', function() {
 				'textbox1': ['a≤b'],
 			});
 
-			fs.writeFile(out_fn, new Buffer(res), {encoding: 'binary'}, done);
+			fs.writeFile(out_fn, res, {}, done);
 		});
 	});
 
@@ -433,7 +433,7 @@ describe ('pdfform', function() {
 			};
 
 			const res = pdfform(pdfjs_wrap).transform(in_buf, values);
-			fs.writeFile(out_fn, new Buffer(res), {encoding: 'binary'}, done);
+			fs.writeFile(out_fn, res, {}, done);
 		});
 	});
 
@@ -534,6 +534,6 @@ describe ('pdfform', function() {
 		pdfform(pdfjs_wrap).list_fields(res);
 
 		const out_fn = __dirname + '/data/out-french-adobe-reader.pdf';
-		fs.writeFile(out_fn, new Buffer(res), {encoding: 'binary'}, done);
+		fs.writeFile(out_fn, res, {}, done);
 	});
 });
