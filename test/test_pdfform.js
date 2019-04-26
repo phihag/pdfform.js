@@ -536,4 +536,20 @@ describe ('pdfform', function() {
 		const out_fn = __dirname + '/data/out-french-adobe-reader.pdf';
 		fs.writeFile(out_fn, res, {}, done);
 	});
+
+	it('radio buttons', (done) => {
+		const input = fs.readFileSync(__dirname + '/data/RadiobuttonExample.pdf');
+
+		const fields = pdfform().list_fields(input);
+		assert.deepStrictEqual(fields, {
+			'Optionsfeldliste': [{type: 'radio', options: ['1', '2']}],
+		});
+
+		const res = pdfform().transform(input, {
+			'Optionsfeldliste': '1',
+		});
+
+		const out_fn = __dirname + '/data/out-RadiobuttonExample.pdf';
+		fs.writeFile(out_fn, res, {}, done);
+	});
 });

@@ -27,3 +27,7 @@ input,button {
 	font-size: 200%;
 	background: rgba(255, 255, 255, 0.95);
 }
+
+fieldset {
+	display: inline-block;
+}

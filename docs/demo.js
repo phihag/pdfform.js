@@ -24,6 +24,24 @@ function list(buf) {
 		row.appendChild(document.createTextNode(field_key));
 		list_form.appendChild(row);
 		field_specs[field_key].forEach(function(spec, i) {
+			if ((spec.type === 'radio') && spec.options) {
+				var fieldset_el = document.createElement('fieldset');
+				spec.options.forEach(function(ostr) {
+					var label = document.createElement('label');
+					var radio = document.createElement('input');
+					radio.setAttribute('type', 'radio');
+					radio.setAttribute('value', ostr);
+					radio.setAttribute('name', field_key + '_' + i);
+					radio.setAttribute('data-idx', i);
+					radio.setAttribute('data-key', field_key);
+					label.appendChild(radio);
+					label.appendChild(document.createTextNode(ostr));
+					fieldset_el.appendChild(label);
+				});
+				row.appendChild(fieldset_el);
+				return;
+			}
+
 			var input = document.createElement((spec.type === 'select') ? 'select' : 'input');
 			input.setAttribute('data-idx', i);
 			input.setAttribute('data-key', field_key);
@@ -49,6 +67,10 @@ function fill(buf) {
 	var list_form = document.querySelector('.list_form');
 	var fields = {};
 	list_form.querySelectorAll('input,select').forEach(function(input) {
+		if ((input.getAttribute('type') === 'radio') && !input.checked) {
+			return;
+		}
+
 		var key = input.getAttribute('data-key');
 		if (!fields[key]) {
 			fields[key] = [];
