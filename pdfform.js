@@ -430,6 +430,7 @@ function transform(buf, fields) {
 				n.map.AS = n.map.V = n.map.DV = value ? new minipdf_lib.Name('Yes') : new minipdf_lib.Name('Off');
 			} else if (ft_name == 'Ch') {
 				n.map.V =  '' + value;
+				n.map.I[0] = Math.max(0, n.map.Opt.indexOf(value));
 			} else if (ft_name == 'Sig') {
 				return; // Signature fields are not supported so far
 			} else {
