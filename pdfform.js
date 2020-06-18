@@ -308,7 +308,10 @@ function visit_acroform_fields(doc, callback) {
 				to_visit.push.apply(to_visit, n.map.Kids);
 			} else if (n.map && n.map.Type && n.map.Type.name == 'Annot' && n.map.T) {
 				callback(n);
-			}
+			//Handles case where PDF renders form in a different way
+			} else if (n.map && n.map.FT && (n.map.FT.name === "Btn" || n.map.FT.name === 'Tx' || n.map.FT.name === 'Ch')&& n.map.T) {
+                    		callback(n)
+                	}
 		}
 	} else {
 		// No AcroForm? Look in the pages themselves
