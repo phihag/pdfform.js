@@ -105,11 +105,17 @@ function serialize_str(str) {
 	for (i = 0; i < str.length; i++) {
 		var cu = str.charCodeAt(i);
 		var c1 = String.fromCharCode(cu >> 8);
+		if (c1 === '\r') {
+			c1 = '\\r';
+		}
 		if (c1 === '\\' || c1 === '(' || c1 === ')') {
 			ret += '\\';
 		}
 		ret += c1;
 		var c2 = String.fromCharCode(cu & 0xff);
+		if (c2 === '\r') {
+			c2 = '\\r';
+		}
 		if (c2 === '\\' || c2 === '(' || c2 === ')') {
 			ret += '\\';
 		}
