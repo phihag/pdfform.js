@@ -1,5 +1,5 @@
 {
-  "name": "pdfform.js",
+  "name": "@creditiq/pdfform.js",
   "author": "Philipp Hagemeister <phihag@phihag.de>",
   "description": "Fill out PDF forms in pure JavaScript",
   "main": "pdfform.js",
@@ -7,7 +7,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git://github.com/phihag/pdfform.js.git"
+    "url": "git://github.com/creditiq/pdfform.js.git"
   },
   "scripts": {
     "test": "mocha test/",
