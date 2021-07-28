@@ -499,7 +499,7 @@ PDFReader.prototype = {
 		var offset_length = obj.map.W[1];
 		assert((offset_length >= 1) && (offset_length <= 4));
 		var gen_length = obj.map.W[2];
-		assert((gen_length >= 1) && (gen_length <= 4));
+		assert((gen_length >= 0) && (gen_length <= 4));
 		assert(
 			obj.content.length % (type_length + offset_length + gen_length) === 0,
 			'content is ' + obj.content.length + ' bytes long, each entry is ' + JSON.stringify(obj.map.W));
