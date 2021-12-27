@@ -2,8 +2,8 @@
 
 if (typeof window == 'undefined') {
 	// node.js, load compat libraries
-	var DOMParser = require('xmldom').DOMParser;
-	var XMLSerializer = require('xmldom').XMLSerializer;
+	var DOMParser = require('@xmldom/xmldom').DOMParser;
+	var XMLSerializer = require('@xmldom/xmldom').XMLSerializer;
 	var text_encoding = require('text-encoding');
 	var TextEncoder = text_encoding.TextEncoder;
 	var TextDecoder = text_encoding.TextDecoder;

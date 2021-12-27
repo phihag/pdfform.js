@@ -14,7 +14,7 @@
     "prepublishOnly": "make clean_dist && make lint && make test && make dist"
   },
   "dependencies": {
-    "xmldom": "*",
+    "@xmldom/xmldom": "*",
     "text-encoding": "*",
     "pako": "*"
   },
