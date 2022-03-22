@@ -1,28 +1,56 @@
 {
-  "name": "pdfform.js",
+  "name": "@mollie/pdfform.js",
   "author": "Philipp Hagemeister <phihag@phihag.de>",
+  "contributors": [
+    "Nik Caplen <nik@sensatus.com>",
+    "Davey Moores <david.moores@mollie.com>"
+  ],
   "description": "Fill out PDF forms in pure JavaScript",
   "main": "pdfform.js",
   "browser": "dist/pdfform.minipdf.dist.js",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git://github.com/phihag/pdfform.js.git"
+    "url": "git://github.com/timetotrade/pdfform.js.git"
   },
   "scripts": {
     "test": "mocha test/",
-    "prepublishOnly": "make clean_dist && make lint && make test && make dist"
+    "lint": "npx eslint test/*.js docs/*.js *.js",
+    "build": "webpack --config webpack.config.js"
   },
   "dependencies": {
-    "@xmldom/xmldom": "*",
-    "text-encoding": "*",
-    "pako": "*"
+    "pako": "*",
+    "webpack": "^5.70.0"
   },
   "devDependencies": {
     "async": "*",
     "eslint": "*",
     "mocha": "^5.0.4",
-    "uglify-js": "3.x"
+    "text-encoding": "^0.7.0",
+    "uglify-js": "3.x",
+    "webpack-cli": "^4.9.2",
+    "xmldom": "^0.6.0"
   },
-  "version": "1.0.14"
+  "version": "0.0.1",
+  "bugs": {
+    "url": "https://github.com/timetotrade/pdfform.js/issues"
+  },
+  "homepage": "https://github.com/timetotrade/pdfform.js#readme",
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "keywords": [
+    "client",
+    "browser",
+    "pdf",
+    "form",
+    "input"
+  ],
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "minipdf.js",
+    "pdfform.js"
+  ]
 }

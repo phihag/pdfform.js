@@ -1,4 +1,7 @@
-# pdfform.js
+# @timetotrade/pdfform.js
+
+# This code only works on browsers NOT node servers
+## as the node implementation relied on libraries that broke broswer functionality
 
 Fill out PDF forms in pure JavaScript, both in the browser or on the server.
 

@@ -16,7 +16,10 @@
         "comma-dangle": [
             2,
             "always-multiline"
-        ],
+        ]
+    },
+    "parserOptions": {
+        "sourceType": "module"
     },
     "env": {
         "node": true,
@@ -24,17 +27,15 @@
         "es6": true
     },
     "globals": {
-        " (library names) ": 1,
-        "PDFJS": 1,
-        "pdfform": 1,
-        "minipdf": 1,
-        "minipdf_js": 1,
-        "saveAs": 1,
-
-        " (mocha) ": 1,
-        "describe": 1,
-        "it": 1,
-
+        " (library names) ": true,
+        "PDFJS": true,
+        "pdfform": true,
+        "minipdf": true,
+        "minipdf_js": true,
+        "saveAs": true,
+        " (mocha) ": true,
+        "describe": true,
+        "it": true
     },
     "extends": "eslint:recommended"
 }
