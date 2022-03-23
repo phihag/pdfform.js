@@ -1,10 +1,12 @@
-# @timetotrade/pdfform.js
+#@mollie/pdfform
 
-# This code only works on browsers NOT node servers
 
-## as the node implementation relied on libraries that broke broswer functionality
 
-Fill out PDF forms in pure JavaScript, both in the browser or on the server.
+### This fork is a combination of timetotrade/pdfform.js and phiphag/pdfform.js
+
+#### This code only works in browsers and not on node servers as the node implementation relied on libraries that broke browser functionality
+
+Fill out PDF forms in pure JavaScript in the browser.
 
 pdfform.js can function with a slightly customized version of [pdf.js](https://github.com/mozilla/pdf.js). However, due to the size and scope of PDF.js (1600KB+), by default a built-in PDF library (called minipdf) is used.
 
@@ -12,17 +14,17 @@ The [online demo](https://phihag.github.io/pdfform.js/docs/demo.html) demonstrat
 
 ## Installation
 
-To use in a browser, download and serve either [pdfform.minipdf.dist.js](https://raw.githubusercontent.com/phihag/pdfform.js/dist/dist/pdfform.minipdf.dist.js) (minipdf, recommended) or [pdfform.pdf_js.dist.js](https://raw.githubusercontent.com/phihag/pdfform.js/dist/dist/pdfform.pdf_js.dist.js) (pdf.js).
+Pdfform.js includes libraries which are used only for testing and excluded from production builds. Production builds of pdfform.js have a single dependancy - [Pako](https://www.npmjs.com/package/pako) - which is bundled into the output script.
 
-Alternatively, download/clone this repository and add `minipdf.js` and `pdfform.js` to your JavaScript files. You'll also need the [pako](https://github.com/nodeca/pako) library.
+Use `yarn build` to generate a production build and serve `dist/pdfform.dist.js`.
+
 
 ## Usage
 
 Simply call `transform` with the PDF file contents and the fields.
 
 ```html
-<!-- download from https://raw.githubusercontent.com/phihag/pdfform.js/dist/dist/pdfform.minipdf.dist.js -->
-<script src="downloaded/pdfform.minipdf.dist.js"></script>
+<script src="assets/scripts/pdfform.dist.js"></script>
 <script>
   var pdf_buf = ...; // load PDF into an ArrayBuffer, for example via XHR (see demo)
   var fields = {
