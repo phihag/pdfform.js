@@ -11,23 +11,26 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git://github.com/timetotrade/pdfform.js.git"
+    "url": "git://github.com/mollie/pdfform.js.git"
   },
   "scripts": {
     "test": "mocha test/",
     "lint": "npx eslint test/*.js docs/*.js *.js",
-    "build": "webpack --config webpack.config.js"
+    "lint:fix": "yarn lint --fix",
+    "build": "webpack --config webpack.config.js",
+    "format": "npx prettier --write ."
   },
   "dependencies": {
-    "pako": "*",
-    "webpack": "^5.70.0"
+    "pako": "*"
   },
   "devDependencies": {
     "async": "*",
     "eslint": "*",
     "mocha": "^5.0.4",
+    "prettier": "^2.6.0",
     "text-encoding": "^0.7.0",
     "uglify-js": "3.x",
+    "webpack": "^5.70.0",
     "webpack-cli": "^4.9.2",
     "xmldom": "^0.6.0"
   },

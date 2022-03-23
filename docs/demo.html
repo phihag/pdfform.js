@@ -1,50 +1,73 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="utf-8" />
-<title>pddform.js demo</title>
-<link rel="stylesheet" href="demo.css" />
-</head>
-<body>
-<div class="error"></div>
-<form class="url_form">
-<div>Upload a PDF form file: <label><input type="file" name="file" /></label></div>
+  <head>
+    <meta charset="utf-8" />
+    <title>pddform.js demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <div class="error"></div>
+    <form class="url_form">
+      <div>
+        Upload a PDF form file: <label><input type="file" name="file" /></label>
+      </div>
 
-<label>or download one: <input type="text" size="40" value="Spielberichtsbogen_2BL.pdf" name="url" /><button role="submit">Download</button></label>
-</form>
+      <label
+        >or download one:
+        <input
+          type="text"
+          size="40"
+          value="Spielberichtsbogen_2BL.pdf"
+          name="url"
+        /><button role="submit">Download</button></label
+      >
+    </form>
 
-<form class="cur_file"></form>
+    <form class="cur_file"></form>
 
-<form class="lib_form">
-PDF library:
-<label><input type="radio" name="pdflib" value="minipdf" checked="checked" />minipdf</label>
-<label><input type="radio" name="pdflib" value="pdf.js" />PDF.js</label>
-</form>
+    <form class="lib_form">
+      PDF library:
+      <label
+        ><input
+          type="radio"
+          name="pdflib"
+          value="minipdf"
+          checked="checked"
+        />minipdf</label
+      >
+      <label><input type="radio" name="pdflib" value="pdf.js" />PDF.js</label>
+    </form>
 
-<form class="fill_form"><button class="fill" disabled="disabled">Fill and download PDF</button></form>
+    <form class="fill_form">
+      <button class="fill" disabled="disabled">Fill and download PDF</button>
+    </form>
 
-<form class="list_form">
-</form>
+    <form class="list_form"></form>
 
-<div class="loading">Loading (this may take a while since PDF.js is gigantic)</div>
+    <div class="loading">
+      Loading (this may take a while since PDF.js is gigantic)
+    </div>
 
-<!-- In a real-life scenario, you want to chose EITHER minipdf (smaller) -->
-<script src="../minipdf.js"></script>
+    <!-- In a real-life scenario, you want to chose EITHER minipdf (smaller) -->
+    <script src="../minipdf.js"></script>
 
-<!-- .. OR pdf.js (huge, but better compatibility).
+    <!-- .. OR pdf.js (huge, but better compatibility).
 pdf.worker.js is slightly modified to export the actual classes we care about -->
-<script src="../customlibs/pdf.worker.js"></script>
-<script src="../minipdf_js.js"></script>
+    <script src="../customlibs/pdf.worker.js"></script>
+    <script src="../minipdf_js.js"></script>
 
+    <!-- pako and pdfform.js are required either way -->
+    <script
+      type="text/javascript"
+      src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.3/pako.min.js"
+      integrity="sha256-X7u/eQo6oIgWqc5jOmTjQn3loM8Lse0ock76Gkkn/Ro="
+      crossorigin="anonymous"
+    ></script>
+    <script src="../pdfform.js"></script>
 
-<!-- pako and pdfform.js are required either way -->
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.3/pako.min.js" integrity="sha256-X7u/eQo6oIgWqc5jOmTjQn3loM8Lse0ock76Gkkn/Ro=" crossorigin="anonymous"></script>
-<script src="../pdfform.js"></script>
+    <!-- FileSaver.js is just needed for the demo, although you'll probably use it in some form as well -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.0.0/FileSaver.min.js"></script>
 
-<!-- FileSaver.js is just needed for the demo, although you'll probably use it in some form as well -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.0.0/FileSaver.min.js"></script>
-
-<script src="demo.js"></script>
-
-</body>
+    <script src="demo.js"></script>
+  </body>
 </html>

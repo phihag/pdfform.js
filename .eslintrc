@@ -1,41 +1,29 @@
 {
-    "rules": {
-        "indent": 0,
-        "quotes": [
-            2,
-            "single"
-        ],
-        "linebreak-style": [
-            2,
-            "unix"
-        ],
-        "semi": [
-            2,
-            "always"
-        ],
-        "comma-dangle": [
-            2,
-            "always-multiline"
-        ]
-    },
-    "parserOptions": {
-        "sourceType": "module"
-    },
-    "env": {
-        "node": true,
-        "browser": true,
-        "es6": true
-    },
-    "globals": {
-        " (library names) ": true,
-        "PDFJS": true,
-        "pdfform": true,
-        "minipdf": true,
-        "minipdf_js": true,
-        "saveAs": true,
-        " (mocha) ": true,
-        "describe": true,
-        "it": true
-    },
-    "extends": "eslint:recommended"
+  "rules": {
+    "indent": 0,
+    "quotes": [2, "double"],
+    "linebreak-style": [2, "unix"],
+    "semi": [2, "always"],
+    "comma-dangle": [2, "always-multiline"]
+  },
+  "parserOptions": {
+    "sourceType": "module"
+  },
+  "env": {
+    "node": true,
+    "browser": true,
+    "es6": true
+  },
+  "globals": {
+    " (library names) ": true,
+    "PDFJS": true,
+    "pdfform": true,
+    "minipdf": true,
+    "minipdf_js": true,
+    "saveAs": true,
+    " (mocha) ": true,
+    "describe": true,
+    "it": true
+  },
+  "extends": "eslint:recommended"
 }
